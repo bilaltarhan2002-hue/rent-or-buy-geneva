@@ -99,23 +99,41 @@ def chf(x: float) -> str:
     return f"{x:,.0f} CHF".replace(",", "'")
 
 
+# ---------------------------------------------------------------- Démo
+DEMO = {"prix": 1_200_000, "loyer": 2_700, "revenu": 220_000, "epargne": 300_000,
+        "emprunt": 960_000, "amort": None}
+
+
+def charger_demo():
+    for k, v in DEMO.items():
+        st.session_state[k] = v
+
+
+def effacer():
+    for k in DEMO:
+        st.session_state[k] = None
+
+
 # ---------------------------------------------------------------- Saisie
 sb = st.sidebar
+b1, b2 = sb.columns(2)
+b1.button("Voir une démo", on_click=charger_demo, type="primary", use_container_width=True)
+b2.button("Effacer", on_click=effacer, use_container_width=True)
 sb.header("1. Vos deux logements")
-prix = sb.number_input("Prix du logement à acheter (CHF)", min_value=0, value=None, step=10_000,
+prix = sb.number_input("Prix du logement à acheter (CHF)", min_value=0, value=None, key="prix", step=10_000,
                        placeholder="ex. 1200000")
-loyer = sb.number_input("Loyer du logement à louer (CHF/mois)", min_value=0, value=None, step=50,
+loyer = sb.number_input("Loyer du logement à louer (CHF/mois)", min_value=0, value=None, key="loyer", step=50,
                         placeholder="ex. 2700")
 
 sb.header("2. Votre argent")
-revenu = sb.number_input("Revenu brut du ménage (CHF/an)", min_value=0, value=None, step=5_000,
+revenu = sb.number_input("Revenu brut du ménage (CHF/an)", min_value=0, value=None, key="revenu", step=5_000,
                          placeholder="ex. 220000")
-epargne = sb.number_input("Combien avez-vous d'épargne ? (CHF)", min_value=0, value=None, step=5_000,
+epargne = sb.number_input("Combien avez-vous d'épargne ? (CHF)", min_value=0, value=None, key="epargne", step=5_000,
                           placeholder="ex. 300000",
                           help="Tout ce que vous pouvez mettre dans l'achat : apport et frais. Le reste est placé.")
 
 sb.header("3. Votre hypothèque")
-emprunt = sb.number_input("Combien empruntez-vous ? (CHF)", min_value=0, value=None, step=10_000,
+emprunt = sb.number_input("Combien empruntez-vous ? (CHF)", min_value=0, value=None, key="emprunt", step=10_000,
                           placeholder="ex. 960000",
                           help="Les banques prêtent au maximum 80 % du prix.")
 if prix and emprunt is not None:
@@ -133,7 +151,7 @@ taux = sb.number_input("Taux hypothécaire (%)", min_value=0.0, max_value=15.0,
                        help="Taux moyen du marché pour ce type d'hypothèque. "
                             "Modifiez-le si votre banque vous propose un autre taux.")
 amort_min = amortissement_minimum(prix, emprunt) if prix and emprunt is not None else None
-amort = sb.number_input("Combien remboursez-vous par an ? (CHF)", min_value=0, value=None, step=1_000,
+amort = sb.number_input("Combien remboursez-vous par an ? (CHF)", min_value=0, value=None, key="amort", step=1_000,
                         placeholder=f"minimum {amort_min:,.0f}".replace(",", "'") if amort_min is not None else "ex. 10667",
                         help="Laissez vide pour appliquer le minimum des banques : "
                              "la dette redescend à 2/3 du prix en 15 ans.")
@@ -185,6 +203,7 @@ if manquants:
 """, unsafe_allow_html=True)
     liste = manquants[0] if len(manquants) == 1 else ", ".join(manquants[:-1]) + " et " + manquants[-1]
     st.info("Entrez " + liste + ".")
+    st.button("Pas d'idée ? Voir une démo", on_click=charger_demo, type="primary", key="demo_main")
     pied_de_page()
     st.stop()
 
