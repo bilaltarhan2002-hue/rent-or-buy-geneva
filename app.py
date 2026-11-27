@@ -20,13 +20,19 @@ st.markdown("""
 #MainMenu, footer {visibility: hidden;}
 header[data-testid="stHeader"], [data-testid="stAppViewContainer"], [data-testid="stMain"] {background: transparent;}
 .stApp {background:
-         linear-gradient(rgba(30,33,38,.55), rgba(30,33,38,.88) 55%, rgba(30,33,38,.96)),
+         linear-gradient(rgba(20,22,26,.18), rgba(20,22,26,.30)),
          url("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Jet_d%27eau_from_Lake_Geneva.jpg/1920px-Jet_d%27eau_from_Lake_Geneva.jpg") center 35% / cover fixed no-repeat, #2b2e34;}
 .hero {position: relative; color: #fff; border-radius: 20px; padding: 46px 38px 40px 38px;
        margin-bottom: 26px; min-height: 270px; overflow: hidden;
        background: linear-gradient(100deg, rgba(10,28,52,.70) 0%, rgba(10,28,52,.35) 50%, rgba(10,28,52,0) 100%);
        border: 1px solid rgba(255,255,255,.18); backdrop-filter: blur(1px);
        box-shadow: 0 10px 30px rgba(0,0,0,.25);}
+.block-container p, .block-container span, .block-container label {text-shadow: 0 1px 6px rgba(0,0,0,.55);}
+.section {background: rgba(30,33,38,.82); border-radius: 14px; padding: 8px 16px 8px 8px; width: fit-content;}
+div[data-baseweb="tab-list"] {background: rgba(30,33,38,.85); border-radius: 12px; padding: 4px 8px;}
+div[data-baseweb="tab-panel"] {background: rgba(30,33,38,.90); border-radius: 14px; padding: 16px 18px;}
+div[data-testid="stExpander"] details {background: rgba(30,33,38,.90); border-radius: 12px;}
+div[data-testid="stAlert"] {background: rgba(30,33,38,.88); border-radius: 12px;}
 .hero h1, .hero p {text-shadow: 0 2px 10px rgba(0,0,0,.45);}
 .hero .credit {position: absolute; right: 14px; bottom: 8px; font-size: .68rem; color: rgba(255,255,255,.7);}
 .hero .credit a {color: rgba(255,255,255,.7);}
