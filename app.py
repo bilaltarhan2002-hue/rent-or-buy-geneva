@@ -174,7 +174,7 @@ OUTILS = [
 ]
 # ✓ oui (vérifié) · ✗ non · ~ en partie · ? pas pu vérifier
 COMPARAISON = [
-    ("Vérifie si la banque vous prêterait l'argent", ["✓", "✗", "✓", "?", "✗"]),
+    ("Vérifie si la banque vous prêterait l'argent", ["✓", "✗", "✓", "✓", "✗"]),
     ("Compare l'achat avec la location",             ["✓", "✓", "✗", "✗", "✓"]),
     ("Donne l'année à partir de laquelle acheter devient rentable", ["✓", "✗", "✗", "✗", "✓"]),
     ("Tient compte du rendement de l'épargne (coût d'opportunité)", ["✓", "✓", "✗", "✗", "✓"]),
@@ -209,9 +209,9 @@ def fenetre_comparaison():
 </style>
 <table class="comp"><tr><th></th>{entetes}</tr>{lignes}</table>
 """, unsafe_allow_html=True)
-    st.caption("✓ oui · ✗ non · ~ en partie · ? pas pu vérifier. "
+    st.caption("✓ oui · ✗ non · ~ en partie. "
                "Établi le 27.11.2026 à partir de la description publique de chaque outil ; nous ne les avons pas tous testés en détail. "
-               "Moneyland ne vérifie pas la capacité financière et donne un résultat pour une durée choisie ; MyFinanceTools ne compte que l'impôt foncier (pas l'impôt sur le revenu) et contient des liens d'affiliation ; les impôts du simulateur BCGE ont été vérifiés par notre groupe. "
+               "Moneyland ne vérifie pas la capacité financière et donne un résultat pour une durée choisie ; MyFinanceTools ne compte que l'impôt foncier (pas l'impôt sur le revenu) et contient des liens d'affiliation ; le simulateur BCGE (vérifié par notre groupe) demande le revenu pour juger la capacité financière, mais ne compte pas les impôts. "
                "UBS propose aussi un calculateur location/achat séparé, non comparé ici.")
     st.markdown("**En résumé** : Moneyland reste plus complet sur la fiscalité. Notre outil se distingue par "
                 "Casatax, des hypothèses genevoises issues de données publiques "
