@@ -7,6 +7,7 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
+from marche import CSS as CSS_MARCHE, bandeau
 from model import Hypotheses, amortissement_minimum, annee_equilibre, controle_financement, simuler
 
 st.set_page_config(page_title="Acheter ou louer à Genève ?", page_icon="🏠", layout="wide")
@@ -75,6 +76,7 @@ div[data-testid="stMetricValue"] {font-size: 1.55rem; color: #efefef;}
 section[data-testid="stSidebar"] h2 {font-size: 1.02rem; color: #8cc0f5; margin-top: .6rem;}
 </style>
 """, unsafe_allow_html=True)
+st.markdown(f"<style>{CSS_MARCHE}</style>", unsafe_allow_html=True)
 
 
 def pied_de_page():
@@ -153,6 +155,10 @@ with sb.expander("Frais", expanded=False):
     entretien = st.number_input("Entretien et charges (% de la valeur/an)", 0.0, 5.0, 1.0, 0.1)
 
 # ---------------------------------------------------------------- En-tête
+ticker = bandeau(TAUX_BNS)
+if ticker:
+    st.markdown(ticker, unsafe_allow_html=True)
+
 st.markdown("""
 <div class="hero">
   <h1>Acheter ou louer à Genève ?</h1>
