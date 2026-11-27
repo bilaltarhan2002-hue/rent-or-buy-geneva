@@ -16,6 +16,17 @@ TEXTE, TEXTE2, GRILLE = "#efefef", "#b0b0b0", "#3d4148"
 
 st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+.stApp, .stApp p, .stApp label, .stApp input, .stApp textarea, .stApp button, .stApp li,
+.stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp td, .stApp th,
+.stApp div[data-testid="stMetricValue"], .stApp div[data-testid="stMarkdownContainer"],
+.stApp div[data-baseweb="select"], .stApp div[data-baseweb="tab-list"] button {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  letter-spacing: -0.005em;}
+.hero h1 {letter-spacing: -0.02em; font-weight: 800;}
+.footer {margin-top: 48px; padding: 18px 22px; border-radius: 14px; background: rgba(30,33,38,.90);
+         border: 1px solid #474c55; color: #b0b0b0; font-size: .82rem; line-height: 1.55;}
+.footer b {color: #efefef;}
 .block-container {padding-top: 2rem; max-width: 1150px;}
 #MainMenu, footer {visibility: hidden;}
 header[data-testid="stHeader"], [data-testid="stAppViewContainer"], [data-testid="stMain"] {background: transparent;}
@@ -64,6 +75,17 @@ div[data-testid="stMetricValue"] {font-size: 1.55rem; color: #efefef;}
 section[data-testid="stSidebar"] h2 {font-size: 1.02rem; color: #8cc0f5; margin-top: .6rem;}
 </style>
 """, unsafe_allow_html=True)
+
+
+def pied_de_page():
+    st.markdown("""
+<div class="footer">
+  <b>Avertissement.</b> Cet outil a été développé à des fins pédagogiques dans le cadre d'un projet universitaire.
+  Les résultats reposent sur des hypothèses simplifiées (pas d'impôts, taux constant, hausse des prix et des loyers
+  constante) et ne constituent en aucun cas un conseil financier, fiscal ou hypothécaire. Les conditions réelles
+  dépendent de votre banque et de votre situation personnelle : consultez un professionnel avant toute décision.<br>
+  Taux hypothécaires préremplis : moyennes publiées par la Banque nationale suisse (avril 2026).
+</div>""", unsafe_allow_html=True)
 
 
 def section(num, titre):
@@ -156,6 +178,7 @@ if manquants:
 </div>
 """, unsafe_allow_html=True)
     st.info("👈 Il manque encore : " + ", ".join(manquants) + ".")
+    pied_de_page()
     st.stop()
 
 h = Hypotheses(
@@ -193,6 +216,7 @@ if not fin["ok"]:
     for e in fin["erreurs"]:
         st.error(e)
     st.info(f"Revenu minimum pour ce logement : **{chf(fin['revenu_minimum'])}** par an.")
+    pied_de_page()
     st.stop()
 
 # ---------------------------------------------------------------- Simulation
@@ -230,9 +254,8 @@ AXES = dict(gridColor=GRILLE, domain=False, tickColor=GRILLE,
             labelColor=TEXTE2, titleColor=TEXTE2, labelFontSize=12, titleFontSize=12)
 
 def style(ch):
-    return (ch.configure_axis(**AXES).configure_view(stroke=None)
-              .configure_legend(orient="top", labelColor=TEXTE, titleColor=TEXTE2, labelFontSize=13)
-              .configure(background="transparent"))
+    return (ch.configure(font="Inter", background="transparent").configure_axis(**AXES).configure_view(stroke=None)
+              .configure_legend(orient="top", labelColor=TEXTE, titleColor=TEXTE2, labelFontSize=13))
 
 large = df[["annee", "patrimoine_acheteur", "patrimoine_locataire", "ecart"]]
 long = large.melt(id_vars="annee", value_vars=["patrimoine_acheteur", "patrimoine_locataire"],
@@ -332,3 +355,5 @@ with st.expander("ℹ️ Comment l'outil calcule"):
 - **Locataire** : paie le loyer, qui augmente chaque année. Son patrimoine = son épargne placée.
 - **Pas inclus** : impôts (valeur locative, déductions, impôt sur le gain immobilier, fortune), 2e pilier, renouvellement de l'hypothèque à un autre taux.
 """)
+
+pied_de_page()
