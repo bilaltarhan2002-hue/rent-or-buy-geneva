@@ -22,8 +22,8 @@ st.markdown("""
        margin-bottom: 26px; min-height: 270px; overflow: hidden;
        background:
          linear-gradient(100deg, rgba(10,28,52,.92) 0%, rgba(15,42,74,.78) 45%, rgba(15,42,74,.15) 100%),
-         url("https://upload.wikimedia.org/wikipedia/commons/a/ab/Geneve_2005_001_Ork.ch.jpg")
-         center 45% / cover no-repeat, #0f2a4a;
+         url("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Jet_d%27eau_from_Lake_Geneva.jpg/1920px-Jet_d%27eau_from_Lake_Geneva.jpg")
+         center 40% / cover no-repeat, #0f2a4a;
        box-shadow: 0 10px 30px rgba(15,42,74,.18);}
 .hero .credit {position: absolute; right: 14px; bottom: 8px; font-size: .68rem; color: rgba(255,255,255,.7);}
 .hero .credit a {color: rgba(255,255,255,.7);}
@@ -130,7 +130,7 @@ st.markdown("""
   <b>à partir de quand acheter devient plus rentable</b>.</p>
   <div class="chips"><span class="chip">Règles des banques suisses</span>
   <span class="chip">Taux BNS</span><span class="chip">Marché genevois</span></div>
-  <div class="credit">Photo : Ork.ch, <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank">CC BY 2.0</a>, via Wikimedia Commons</div>
+  <div class="credit">Photo : Jurate Daugelaite, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC BY-SA 4.0</a>, via Wikimedia Commons</div>
 </div>
 """, unsafe_allow_html=True)
 
