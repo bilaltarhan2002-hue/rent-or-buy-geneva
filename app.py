@@ -12,17 +12,20 @@ from datetime import date, timedelta
 
 import csv
 import importlib
+import re
 from pathlib import Path
 
 import graphique as _graphique
 import marche as _marche
 import model as _model
+import validation as _validation
 
-for _mod in (_model, _marche, _graphique):   # évite qu'une ancienne version reste en mémoire après une mise à jour
+for _mod in (_model, _marche, _graphique, _validation):   # évite qu'une ancienne version reste en mémoire après une mise à jour
     importlib.reload(_mod)
 
 from graphique import graphique_anime
 from marche import CSS as CSS_MARCHE, bandeau, serie_bns, taux_hypothecaires
+from validation import calcul_main_annee1, tests_coherence
 from model import Hypotheses, amortissement_minimum, annee_equilibre, controle_financement, simuler
 
 st.set_page_config(page_title="Acheter ou louer à Genève ?", page_icon="🏠", layout="wide")
@@ -98,6 +101,69 @@ section[data-testid="stSidebar"] h2 {font-size: 1.02rem; color: #8cc0f5; margin-
 st.markdown(f"<style>{CSS_MARCHE}</style>", unsafe_allow_html=True)
 
 
+DOSSIER_DATA = Path(__file__).resolve().parent / "data"
+FICHIERS_BRUTS = [
+    ("Taux hypothécaires (BNS)", "bns_hypotheques_zikrepro.csv"),
+    ("Obligations de la Confédération (BNS)", "bns_obligations_confederation.csv"),
+    ("Prix des appartements (OCSTAT)", "ocstat_prix_ppe.csv"),
+    ("Loyers (OCSTAT)", "ocstat_loyers.csv"),
+    ("Frais et règles bancaires", "frais_et_regles.csv"),
+]
+
+
+def _avec_liens(df):
+    """Sépare le texte de la source et son lien, pour afficher un lien cliquable."""
+    if "source" in df.columns:
+        df = df.copy()
+        df["lien"] = df["source"].map(lambda t: (re.findall(r"https?://\S+", str(t)) or [None])[0])
+        df["source"] = df["source"].map(lambda t: re.sub(r"\s*https?://\S+", "", str(t)).strip(" ;,") or "voir le lien")
+    return df
+
+
+@st.dialog("Les données utilisées", width="large")
+def fenetre_donnees():
+    st.markdown("Toutes les hypothèses par défaut viennent de **sources publiques**. "
+                "Voici les chiffres bruts, puis les paramètres calculés à partir d'eux.")
+    onglets = st.tabs(["Paramètres calculés"] + [nom for nom, _ in FICHIERS_BRUTS])
+    with onglets[0]:
+        p = pd.read_csv(DOSSIER_DATA / "parametres.csv")
+        p = p.rename(columns={"parametre": "Paramètre", "valeur": "Valeur", "unite": "Unité",
+                              "formule": "Calcul", "source": "source"})
+        st.dataframe(_avec_liens(p), hide_index=True, use_container_width=True,
+                     column_config={"lien": st.column_config.LinkColumn("Lien", display_text="ouvrir")})
+        st.caption("Ces valeurs sont calculées à partir des données brutes (onglets suivants) et préremplies dans l'outil. "
+                   "Les taux BNS sont en plus relus en direct à chaque visite.")
+    for onglet, (nom, fichier) in zip(onglets[1:], FICHIERS_BRUTS):
+        with onglet:
+            d = pd.read_csv(DOSSIER_DATA / "brut" / fichier)
+            st.dataframe(_avec_liens(d), hide_index=True, use_container_width=True,
+                         column_config={"lien": st.column_config.LinkColumn("Lien", display_text="ouvrir")})
+            st.download_button("Télécharger ce fichier (CSV)", (DOSSIER_DATA / "brut" / fichier).read_bytes(),
+                               fichier, "text/csv", key=f"dl_{fichier}")
+    if st.button("Fermer", type="primary", key="fermer_donnees"):
+        st.rerun()
+
+
+@st.dialog("Vérification du calcul", width="large")
+def fenetre_verification(h):
+    st.markdown("**1. L'année 1 refaite à la main**, formule par formule, avec vos chiffres, "
+                "puis comparée au résultat de l'outil.")
+    lignes = calcul_main_annee1(h)
+    tab = pd.DataFrame([{"Étape": n, "Formule": f, "Calcul à la main": chf(m), "Outil": chf(o),
+                         "": "✓" if abs(m - o) < 1 else "✗"} for n, f, m, o in lignes])
+    st.dataframe(tab, hide_index=True, use_container_width=True)
+    ok = all(abs(m - o) < 1 for _, _, m, o in lignes)
+    (st.success if ok else st.error)("Le calcul à la main et l'outil donnent les mêmes résultats."
+                                     if ok else "Différence entre le calcul à la main et l'outil.")
+    st.markdown("**2. Tests de cohérence** : l'outil réagit-il dans le bon sens quand on change une hypothèse ?")
+    tests = tests_coherence(h)
+    for txt, r in tests:
+        st.markdown(f"{'✅' if r else '❌'} {txt}")
+    st.caption(f"{sum(r for _, r in tests)} tests réussis sur {len(tests)}.")
+    if st.button("Fermer", type="primary", key="fermer_verif"):
+        st.rerun()
+
+
 def sources_et_methode():
     t5, t10 = TAUX_BNS["Fixe 5 ans"], TAUX_BNS["Fixe 10 ans"]
     d_obl = ".".join(reversed(oblig["date"].split("-"))) if oblig else "26.11.2026"
@@ -118,7 +184,7 @@ def sources_et_methode():
 | Règles de financement | 20 % d'apport, charges ≤ 1/3 du revenu au taux théorique de 5 %, dette ramenée à 2/3 du prix en 15 ans | Directives de l'Association suisse des banquiers ; calculateur UBS | Appliquées telles quelles dans « Votre financement est-il possible ? ». |
 | Bandeau défilant | SARON, obligations 10 ans, EUR/CHF, USD/CHF, GBP/CHF | BNS, séries *zimoma*, *rendoblid*, *devkum* | Dernières valeurs publiées, relues toutes les 3 heures. |
 
-**Préparation des données** : les chiffres bruts et leur source sont dans le dossier `data/brut/` du projet GitHub. Le script `data/preparer_donnees.py` calcule chaque paramètre (formules ci-dessus) et écrit `data/parametres.csv`, que l'application lit au démarrage. Les séries BNS sont en plus relues en direct.
+**Préparation des données** : chaque paramètre est calculé à partir des chiffres bruts publiés par les sources (formules ci-dessus). Cliquez sur **« Voir les données »** pour afficher les données brutes, les calculs et les liens vers les sources.
 
 **Méthode de calcul**
 - **Même départ** : les deux ménages ont la même épargne. L'acheteur paie l'apport et les frais d'achat avec, et place le reste ; le locataire place tout.
@@ -136,6 +202,14 @@ def sources_et_methode():
 
 
 def pied_de_page():
+    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+    c1, c2, _ = st.columns([1, 1, 2])
+    if c1.button("Voir les données", use_container_width=True, key="btn_donnees"):
+        fenetre_donnees()
+    h_courant = globals().get("h")
+    if c2.button("Vérifier le calcul", use_container_width=True, key="btn_verif", disabled=h_courant is None,
+                 help=None if h_courant else "Remplissez d'abord vos chiffres (ou cliquez sur « Voir une démo »)."):
+        fenetre_verification(h_courant)
     sources_et_methode()
     st.markdown(f"""
 <div class="footer">
