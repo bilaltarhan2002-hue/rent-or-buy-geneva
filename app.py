@@ -133,7 +133,7 @@ with sb.expander("Frais", expanded=False):
 # ---------------------------------------------------------------- En-tête
 st.markdown("""
 <div class="hero">
-  <h1>🏠 Acheter ou louer à Genève ?</h1>
+  <h1>Acheter ou louer à Genève ?</h1>
   <p>Entrez le logement que vous pourriez acheter, celui que vous pourriez louer et votre situation.
   L'outil compare votre <b>patrimoine</b> dans les deux cas, année après année, et vous dit
   <b>à partir de quand acheter devient plus rentable</b>.</p>
