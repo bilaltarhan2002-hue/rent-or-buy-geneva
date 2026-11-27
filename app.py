@@ -253,16 +253,20 @@ def sources_et_methode():
 
 **Méthode de calcul**
 - **Même départ** : les deux ménages ont la même épargne. L'acheteur paie l'apport et les frais d'achat avec, et place le reste ; le locataire place tout.
+- **Frais d'achat** : droits d'enregistrement, registre foncier et notaire, moins Casatax si le logement est une résidence principale sous le plafond.
 - **Même budget** : chaque année, celui dont le logement coûte le moins place la différence au rendement de l'épargne.
 - **Acheteur** : paie les intérêts, le remboursement annuel et l'entretien. Patrimoine = valeur du bien − frais de vente − dette restante + épargne placée.
 - **Locataire** : paie le loyer, qui augmente chaque année. Patrimoine = épargne placée.
 - **Année d'équilibre** : première année à partir de laquelle le patrimoine de l'acheteur reste supérieur à celui du locataire.
 
 **Limites**
-- Pas d'impôts (valeur locative, déductions, impôt sur le gain immobilier, impôt sur la fortune) ni de 2e pilier.
+- Pas d'impôt sur le revenu ni sur la fortune (valeur locative, déduction des intérêts), pas d'impôt sur le gain immobilier à la revente, pas de 2e pilier. Seuls les droits d'enregistrement (avec Casatax) sont comptés.
+- Frais liés à la cédule hypothécaire (inscription du gage) non comptés ; la réduction Casatax suppose d'habiter le logement au moins 3 ans.
 - Taux hypothécaire constant (renouvellement supposé au même taux).
 - Hausses des prix et des loyers constantes, tirées du passé : elles ne prédisent pas l'avenir.
 - Pas de risque : le rendement du placement et la hausse des prix sont appliqués chaque année comme s'ils étaient garantis.
+- Le logement acheté et le logement loué sont supposés comparables : c'est à l'utilisateur de choisir deux logements équivalents.
+- La vérification du financement applique les règles usuelles des banques suisses ; chaque banque peut appliquer ses propres critères.
 """)
 
 
@@ -281,8 +285,8 @@ def pied_de_page():
     st.markdown(f"""
 <div class="footer">
   <b>Avertissement.</b> Cet outil a été développé à des fins pédagogiques dans le cadre d'un projet universitaire.
-  Les résultats reposent sur des hypothèses simplifiées (pas d'impôts, taux constant, hausse des prix et des loyers
-  constante) et ne constituent en aucun cas un conseil financier, fiscal ou hypothécaire. Les conditions réelles
+  Les résultats reposent sur des hypothèses simplifiées (pas d'impôt sur le revenu ni sur la fortune, taux constant,
+  hausse des prix et des loyers constante) et ne constituent en aucun cas un conseil financier, fiscal ou hypothécaire. Les conditions réelles
   dépendent de votre banque et de votre situation personnelle : consultez un professionnel avant toute décision.<br>
   Données : Banque nationale suisse, Office cantonal de la statistique (Genève). Taux hypothécaires : {MOIS_TAUX}.
 </div>""", unsafe_allow_html=True)

@@ -9,6 +9,7 @@ Toutes les hypothèses par défaut de l'outil viennent de **sources publiques**.
 | `brut/ocstat_prix_ppe.csv` | OCSTAT : prix médian au m² des appartements en PPE à Genève |
 | `brut/ocstat_loyers.csv` | OCSTAT : variation annuelle des loyers libres à Genève |
 | `brut/frais_et_regles.csv` | Loi genevoise (droits d'enregistrement), frais usuels, règles des banques |
+| `brut/casatax.csv` | Règlement genevois rsGE D 3 30.03 : plafond de prix et réduction Casatax (2026) |
 | `preparer_donnees.py` | Calcule chaque paramètre à partir des fichiers bruts (formules dans le code) |
 | `parametres.csv` | Résultat : paramètres par défaut lus par l'application |
 
