@@ -12,7 +12,7 @@ from model import Hypotheses, amortissement_minimum, annee_equilibre, controle_f
 st.set_page_config(page_title="Acheter ou louer à Genève ?", page_icon="🏠", layout="wide")
 
 BLEU, ORANGE = "#338ced", "#e76624"   # Acheter, Louer (palette validée daltonisme, mode sombre)
-TEXTE, TEXTE2, GRILLE = "#efefef", "#9c9c9c", "#23272e"
+TEXTE, TEXTE2, GRILLE = "#efefef", "#b0b0b0", "#3d4148"
 
 st.markdown("""
 <style>
@@ -33,24 +33,24 @@ st.markdown("""
 .chip {display: inline-block; background: rgba(255,255,255,.14); color: #fff; border-radius: 999px;
        padding: 4px 12px; font-size: .82rem; margin: 0 6px 6px 0;}
 .section {display: flex; align-items: center; gap: 12px; margin: 30px 0 12px 0;}
-.section .num {background: #16283f; color: #8cc0f5; font-weight: 700; border-radius: 10px;
+.section .num {background: #24364d; color: #8cc0f5; font-weight: 700; border-radius: 10px;
                width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;}
 .section .titre {font-size: 1.35rem; font-weight: 700; color: #efefef;}
-div[data-testid="stMetric"] {background: #14171c; border: 1px solid #262a31; border-radius: 14px;
+div[data-testid="stMetric"] {background: #363a41; border: 1px solid #474c55; border-radius: 14px;
        padding: 14px 18px;}
-div[data-testid="stMetricLabel"] p {color: #9c9c9c; font-size: .86rem;}
+div[data-testid="stMetricLabel"] p {color: #b0b0b0; font-size: .86rem;}
 div[data-testid="stMetricValue"] {font-size: 1.55rem; color: #efefef;}
 .checks {display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 4px 0;}
 .check {border-radius: 12px; padding: 10px 14px; font-size: .92rem; border: 1px solid;}
-.check.ok {background: #0f2418; border-color: #1f5a37; color: #8be0a9;}
-.check.ko {background: #2a1213; border-color: #6b2a2c; color: #f5a3a3;}
-.verdict {border-radius: 16px; padding: 22px 26px; margin: 4px 0 18px 0; border: 1px solid #262a31;}
+.check.ok {background: #1f3a2a; border-color: #1f5a37; color: #8be0a9;}
+.check.ko {background: #4a2526; border-color: #6b2a2c; color: #f5a3a3;}
+.verdict {border-radius: 16px; padding: 22px 26px; margin: 4px 0 18px 0; border: 1px solid #474c55;}
 .verdict .big {font-size: 1.6rem; font-weight: 700; color: #efefef; line-height: 1.25;}
 .verdict .small {color: #b5b5b5; margin-top: 6px; font-size: 1rem;}
-.verdict.achat {background: #0f1d2e; border-left: 6px solid #338ced;}
-.verdict.loc {background: #2a170d; border-left: 6px solid #e76624;}
+.verdict.achat {background: #24364d; border-left: 6px solid #338ced;}
+.verdict.loc {background: #45301f; border-left: 6px solid #e76624;}
 .etapes {display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 6px;}
-.etape {background: #14171c; border: 1px solid #262a31; border-radius: 14px; padding: 18px;}
+.etape {background: #363a41; border: 1px solid #474c55; border-radius: 14px; padding: 18px;}
 .etape b {display: block; color: #8cc0f5; margin-bottom: 4px;}
 section[data-testid="stSidebar"] h2 {font-size: 1.02rem; color: #8cc0f5; margin-top: .6rem;}
 </style>
@@ -238,7 +238,7 @@ base = alt.Chart(long).encode(
     color=alt.Color("option:N", scale=couleurs, legend=alt.Legend(title=None)),
 )
 courbes = base.mark_line(strokeWidth=2.5, interpolate="monotone")
-points = base.mark_point(filled=True, size=80, stroke="#0a0b0d", strokeWidth=2).encode(
+points = base.mark_point(filled=True, size=80, stroke="#2b2e34", strokeWidth=2).encode(
     opacity=alt.condition(survol, alt.value(1), alt.value(0)))
 curseur = alt.Chart(large).mark_rule(strokeWidth=16, color="#ffffff").encode(
     x="annee:Q",
