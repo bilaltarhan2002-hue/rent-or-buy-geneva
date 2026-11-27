@@ -80,12 +80,14 @@ eq = annee_equilibre(lignes)
 fin_h = lignes[-1]
 
 st.subheader("2. Le verdict")
-c1, c2, c3 = st.columns(3)
+c1, c2 = st.columns(2)
 c1.metric("Acheter devient plus rentable", f"après {eq} ans" if eq else "jamais sur cette durée")
 c2.metric(f"Écart après {horizon} ans", chf(fin_h["ecart"]),
           help="Patrimoine de l'acheteur moins patrimoine du locataire. Positif : acheter est mieux.")
-c3.metric("Coût mensuel la 1re année", f"{chf(lignes[0]['cout_acheteur'] / 12)} vs {chf(loyer)}",
-          help="Acheteur (intérêts + amortissement + entretien) contre loyer.")
+c3, c4 = st.columns(2)
+c3.metric("Coût mensuel acheteur (1re année)", chf(lignes[0]["cout_acheteur"] / 12),
+          help="Intérêts + amortissement + entretien, divisés par 12.")
+c4.metric("Loyer mensuel (1re année)", chf(loyer))
 
 if eq and eq <= horizon:
     st.write(f"👉 Si vous restez **plus de {eq - 1} ans**, acheter vous rend plus riche. En dessous, louer est préférable.")
