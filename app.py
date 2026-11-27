@@ -18,13 +18,16 @@ st.markdown("""
 <style>
 .block-container {padding-top: 2rem; max-width: 1150px;}
 #MainMenu, footer {visibility: hidden;}
+header[data-testid="stHeader"], [data-testid="stAppViewContainer"], [data-testid="stMain"] {background: transparent;}
+.stApp {background:
+         linear-gradient(rgba(30,33,38,.55), rgba(30,33,38,.88) 55%, rgba(30,33,38,.96)),
+         url("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Jet_d%27eau_from_Lake_Geneva.jpg/1920px-Jet_d%27eau_from_Lake_Geneva.jpg") center 35% / cover fixed no-repeat, #2b2e34;}
 .hero {position: relative; color: #fff; border-radius: 20px; padding: 46px 38px 40px 38px;
        margin-bottom: 26px; min-height: 270px; overflow: hidden;
-       background:
-         linear-gradient(100deg, rgba(10,28,52,.92) 0%, rgba(15,42,74,.78) 45%, rgba(15,42,74,.15) 100%),
-         url("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Jet_d%27eau_from_Lake_Geneva.jpg/1920px-Jet_d%27eau_from_Lake_Geneva.jpg")
-         center 40% / cover no-repeat, #0f2a4a;
-       box-shadow: 0 10px 30px rgba(15,42,74,.18);}
+       background: linear-gradient(100deg, rgba(10,28,52,.70) 0%, rgba(10,28,52,.35) 50%, rgba(10,28,52,0) 100%);
+       border: 1px solid rgba(255,255,255,.18); backdrop-filter: blur(1px);
+       box-shadow: 0 10px 30px rgba(0,0,0,.25);}
+.hero h1, .hero p {text-shadow: 0 2px 10px rgba(0,0,0,.45);}
 .hero .credit {position: absolute; right: 14px; bottom: 8px; font-size: .68rem; color: rgba(255,255,255,.7);}
 .hero .credit a {color: rgba(255,255,255,.7);}
 .hero h1 {color: #fff; font-size: 2.4rem; margin: 0 0 8px 0; padding: 0; line-height: 1.2;}
