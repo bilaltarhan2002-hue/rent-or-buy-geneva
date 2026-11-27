@@ -174,16 +174,15 @@ OUTILS = [
 ]
 # ✓ oui (vérifié) · ✗ non · ~ en partie · ? pas pu vérifier
 COMPARAISON = [
-    ("Vérifie si la banque vous prêterait l'argent", ["✓", "?", "✓", "?", "?"]),
+    ("Vérifie si la banque vous prêterait l'argent", ["✓", "✗", "✓", "?", "✗"]),
     ("Compare l'achat avec la location",             ["✓", "✓", "✗", "✗", "✓"]),
-    ("Donne l'année à partir de laquelle acheter devient rentable", ["✓", "?", "✗", "✗", "✓"]),
+    ("Donne l'année à partir de laquelle acheter devient rentable", ["✓", "✗", "✗", "✗", "✓"]),
     ("Tient compte du rendement de l'épargne (coût d'opportunité)", ["✓", "✓", "✗", "✗", "✓"]),
-    ("Tient compte des impôts",                      ["✗", "✓", "?", "?", "?"]),
+    ("Tient compte des impôts",                      ["✗", "✓", "✗", "✗", "~"]),
     ("Applique Casatax (aide genevoise)",            ["✓", "✗", "✗", "✗", "✗"]),
     ("Hypothèses par défaut tirées de données publiques genevoises", ["✓", "✗", "✗", "✗", "✗"]),
-    ("Taux de la BNS lus en direct",                 ["✓", "✗", "✗", "✗", "✗"]),
     ("Sources visibles et calcul vérifiable à la main", ["✓", "~", "✗", "✗", "~"]),
-    ("Neutre : ne vend pas d'hypothèque",            ["✓", "~", "✗", "✗", "?"]),
+    ("Neutre : ne vend pas d'hypothèque",            ["✓", "~", "✗", "✗", "✓"]),
 ]
 COUL_SYMB = {"✓": "#8be0a9", "✗": "#f5a3a3", "~": "#f2c879", "?": "#9c9c9c"}
 
@@ -212,9 +211,10 @@ def fenetre_comparaison():
 """, unsafe_allow_html=True)
     st.caption("✓ oui · ✗ non · ~ en partie · ? pas pu vérifier. "
                "Établi le 27.11.2026 à partir de la description publique de chaque outil ; nous ne les avons pas tous testés en détail. "
+               "Moneyland ne vérifie pas la capacité financière et donne un résultat pour une durée choisie ; MyFinanceTools ne compte que l'impôt foncier (pas l'impôt sur le revenu) et contient des liens d'affiliation ; les impôts du simulateur BCGE ont été vérifiés par notre groupe. "
                "UBS propose aussi un calculateur location/achat séparé, non comparé ici.")
     st.markdown("**En résumé** : Moneyland reste plus complet sur la fiscalité. Notre outil se distingue par "
-                "Casatax, des hypothèses genevoises issues de données publiques, des taux BNS en direct "
+                "Casatax, des hypothèses genevoises issues de données publiques "
                 "et un calcul entièrement transparent et vérifiable.")
     if st.button("Fermer", type="primary", key="fermer_comp"):
         st.rerun()
