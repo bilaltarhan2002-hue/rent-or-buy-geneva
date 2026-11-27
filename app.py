@@ -165,6 +165,61 @@ def fenetre_verification(h):
         st.rerun()
 
 
+OUTILS = [
+    ("Notre outil", None),
+    ("Moneyland<br><small>louer ou acheter</small>", "https://www.moneyland.ch/fr/louer-ou-acheter-calculateur"),
+    ("UBS<br><small>calculateur hypothécaire</small>", "https://www.ubs.com/ch/fr/services/mortgages-and-financing/calculators/mortgage-calculator.html"),
+    ("BCGE<br><small>simulateur hypothécaire</small>", "https://bcge.ch/calculateur-hypothecaire"),
+    ("MyFinanceTools<br><small>louer ou acheter</small>", "https://myfinancetools.io/fr/rent-vs-buy-calculator/"),
+]
+# ✓ oui (vérifié) · ✗ non · ~ en partie · ? pas pu vérifier
+COMPARAISON = [
+    ("Vérifie si la banque vous prêterait l'argent", ["✓", "?", "✓", "?", "?"]),
+    ("Compare l'achat avec la location",             ["✓", "✓", "✗", "✗", "✓"]),
+    ("Donne l'année à partir de laquelle acheter devient rentable", ["✓", "?", "✗", "✗", "✓"]),
+    ("Tient compte du rendement de l'épargne (coût d'opportunité)", ["✓", "✓", "✗", "✗", "✓"]),
+    ("Tient compte des impôts",                      ["✗", "✓", "?", "?", "?"]),
+    ("Applique Casatax (aide genevoise)",            ["✓", "✗", "✗", "✗", "✗"]),
+    ("Hypothèses par défaut tirées de données publiques genevoises", ["✓", "✗", "✗", "✗", "✗"]),
+    ("Taux de la BNS lus en direct",                 ["✓", "✗", "✗", "✗", "✗"]),
+    ("Sources visibles et calcul vérifiable à la main", ["✓", "~", "✗", "✗", "~"]),
+    ("Neutre : ne vend pas d'hypothèque",            ["✓", "~", "✗", "✗", "?"]),
+]
+COUL_SYMB = {"✓": "#8be0a9", "✗": "#f5a3a3", "~": "#f2c879", "?": "#9c9c9c"}
+
+
+@st.dialog("Comparaison avec les outils existants", width="large")
+def fenetre_comparaison():
+    def entete(n, u):
+        if not u:
+            return f"<th>{n}</th>"
+        return f'<th><a href="{u}" target="_blank" style="color:#8cc0f5">{n}</a></th>'
+    entetes = "".join(entete(n, u) for n, u in OUTILS)
+    lignes = "".join(
+        "<tr><td class='crit'>" + crit + "</td>" + "".join(
+            f"<td class='{'nous' if i == 0 else ''}' style='color:{COUL_SYMB[v]}'>{v}</td>" for i, v in enumerate(vals))
+        + "</tr>" for crit, vals in COMPARAISON)
+    st.markdown(f"""
+<style>
+.comp {{width: 100%; border-collapse: collapse; font-size: .9rem;}}
+.comp th {{text-align: center; padding: 10px 6px; border-bottom: 1px solid #474c55; font-weight: 600; line-height: 1.2;}}
+.comp th small {{font-weight: 400; color: #b0b0b0;}}
+.comp td {{text-align: center; padding: 9px 6px; border-bottom: 1px solid #3a3e45; font-size: 1.1rem; font-weight: 700;}}
+.comp td.crit {{text-align: left; font-size: .9rem; font-weight: 400; color: #efefef;}}
+.comp td.nous, .comp th:nth-child(2) {{background: rgba(51,140,237,.14);}}
+</style>
+<table class="comp"><tr><th></th>{entetes}</tr>{lignes}</table>
+""", unsafe_allow_html=True)
+    st.caption("✓ oui · ✗ non · ~ en partie · ? pas pu vérifier. "
+               "Établi le 27.11.2026 à partir de la description publique de chaque outil ; nous ne les avons pas tous testés en détail. "
+               "UBS propose aussi un calculateur location/achat séparé, non comparé ici.")
+    st.markdown("**En résumé** : Moneyland reste plus complet sur la fiscalité. Notre outil se distingue par "
+                "Casatax, des hypothèses genevoises issues de données publiques, des taux BNS en direct "
+                "et un calcul entièrement transparent et vérifiable.")
+    if st.button("Fermer", type="primary", key="fermer_comp"):
+        st.rerun()
+
+
 def sources_et_methode():
     t5, t10 = TAUX_BNS["Fixe 5 ans"], TAUX_BNS["Fixe 10 ans"]
     d_obl = ".".join(reversed(oblig["date"].split("-"))) if oblig else "26.11.2026"
@@ -205,13 +260,15 @@ def sources_et_methode():
 
 def pied_de_page():
     st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
-    c1, c2, _ = st.columns([1, 1, 2])
+    c1, c2, c3, _ = st.columns([1, 1, 1.3, 0.7])
     if c1.button("Voir les données", use_container_width=True, key="btn_donnees"):
         fenetre_donnees()
     h_courant = globals().get("h")
     if c2.button("Vérifier le calcul", use_container_width=True, key="btn_verif", disabled=h_courant is None,
                  help=None if h_courant else "Remplissez d'abord vos chiffres (ou cliquez sur « Voir une démo »)."):
         fenetre_verification(h_courant)
+    if c3.button("Comparer avec les autres outils", use_container_width=True, key="btn_comp"):
+        fenetre_comparaison()
     sources_et_methode()
     st.markdown(f"""
 <div class="footer">
