@@ -1,10 +1,10 @@
 """
 Rent or Buy in Geneva — moteur de simulation.
 
-Deux ménages identiques partent avec le même capital et dépensent le même
+Deux ménages identiques partent avec la même épargne et dépensent le même
 budget chaque année :
-  - l'acheteur met son capital dans l'apport et les frais d'achat ;
-  - le locataire place ce même capital.
+  - l'acheteur paie l'apport et les frais d'achat avec son épargne, et place le reste ;
+  - le locataire place toute son épargne.
 Chaque année, celui dont le logement coûte le moins place la différence.
 On compare ensuite leur patrimoine net, année après année.
 """
@@ -15,18 +15,18 @@ from dataclasses import dataclass
 @dataclass
 class Hypotheses:
     # Les deux logements
-    prix: float = 1_200_000          # prix du logement à acheter (CHF)
-    loyer_mensuel: float = 2_700     # loyer du logement à louer (CHF/mois)
+    prix: float                      # prix du logement à acheter (CHF)
+    loyer_mensuel: float             # loyer du logement à louer (CHF/mois)
 
     # Situation du ménage
-    revenu_annuel: float = 220_000   # revenu brut annuel (CHF)
-    epargne: float = 300_000         # épargne disponible (CHF)
+    revenu_annuel: float             # revenu brut annuel (CHF)
+    epargne: float                   # épargne totale disponible (CHF)
 
-    # Financement
-    part_apport: float = 0.20        # apport en % du prix (min. 20 %)
-    taux_hypo: float = 0.019         # taux hypothécaire annuel
-    amortir_jusqua: float = 2 / 3    # la dette redescend à cette part du prix...
-    duree_amort: int = 15            # ... en ce nombre d'années
+    # Financement choisi par l'utilisateur
+    emprunt: float                   # montant emprunté (hypothèque, CHF)
+    taux_hypo: float                 # taux hypothécaire annuel
+    amort_annuel: float              # montant remboursé chaque année (CHF)
+    duree_amort: int = 15            # nombre d'années de remboursement
 
     # Coûts
     frais_achat: float = 0.05        # notaire + droits d'enregistrement, % du prix
@@ -40,53 +40,69 @@ class Hypotheses:
 
     horizon: int = 30                # nombre d'années simulées
 
+    @property
+    def apport(self) -> float:
+        return self.prix - self.emprunt
+
+    @property
+    def frais(self) -> float:
+        return self.frais_achat * self.prix
+
+
+def amortissement_minimum(prix: float, emprunt: float) -> float:
+    """Règle des banques : la dette redescend à 2/3 du prix en 15 ans au plus."""
+    return max(emprunt - 2 / 3 * prix, 0) / 15
+
 
 def controle_financement(h: Hypotheses) -> dict:
     """Règles usuelles des banques suisses."""
-    apport = h.part_apport * h.prix
-    frais = h.frais_achat * h.prix
-    dette = h.prix - apport
-    amort = max(dette - h.amortir_jusqua * h.prix, 0) / h.duree_amort
-    # Charges théoriques : taux de 5 %, 1 % d'entretien, amortissement
-    charges = 0.05 * dette + 0.01 * h.prix + amort
+    charges = 0.05 * h.emprunt + 0.01 * h.prix + h.amort_annuel
     ratio = charges / h.revenu_annuel if h.revenu_annuel > 0 else float("inf")
+    part_apport = h.apport / h.prix if h.prix > 0 else 0
+    amort_min = amortissement_minimum(h.prix, h.emprunt)
 
-    erreurs = []
-    if h.part_apport < 0.20:
-        erreurs.append("L'apport doit être d'au moins 20 % du prix.")
-    if h.epargne < apport + frais:
+    erreurs, avertissements = [], []
+    if h.emprunt > h.prix:
+        erreurs.append("Le montant emprunté ne peut pas dépasser le prix.")
+    if part_apport < 0.20:
         erreurs.append(
-            f"Épargne insuffisante : il faut {apport + frais:,.0f} CHF "
-            f"(apport {apport:,.0f} + frais {frais:,.0f}).".replace(",", "'")
+            f"Apport trop faible : {part_apport:.1%} du prix. Les banques demandent au moins 20 %, "
+            f"donc un emprunt de {fmt(0.8 * h.prix)} au maximum."
+        )
+    if h.epargne < h.apport + h.frais:
+        erreurs.append(
+            f"Épargne insuffisante : il faut {fmt(h.apport + h.frais)} "
+            f"(apport {fmt(h.apport)} + frais d'achat {fmt(h.frais)})."
         )
     if ratio > 1 / 3:
-        erreurs.append(
-            f"Charges théoriques trop élevées : {ratio:.1%} du revenu (max. 33,3 %)."
+        erreurs.append(f"Charges théoriques trop élevées : {ratio:.1%} du revenu (max. 33,3 %).")
+    if h.amort_annuel * h.duree_amort > h.emprunt:
+        erreurs.append("Vous remboursez plus que le montant emprunté.")
+    if h.amort_annuel < amort_min - 0.5:
+        avertissements.append(
+            f"Amortissement inférieur au minimum des banques ({fmt(amort_min)} par an "
+            f"pour ramener la dette à 2/3 du prix en 15 ans)."
         )
     return {
-        "apport": apport,
-        "frais": frais,
-        "dette": dette,
-        "amortissement": amort,
+        "apport": h.apport,
+        "part_apport": part_apport,
+        "frais": h.frais,
+        "reste_epargne": h.epargne - h.apport - h.frais,
         "charges_theoriques": charges,
         "ratio": ratio,
         "revenu_minimum": 3 * charges,
+        "amort_min": amort_min,
         "ok": not erreurs,
         "erreurs": erreurs,
+        "avertissements": avertissements,
     }
 
 
 def simuler(h: Hypotheses) -> list[dict]:
     """Simulation année par année. Renvoie une ligne par année."""
-    apport = h.part_apport * h.prix
-    capital_depart = apport + h.frais_achat * h.prix
-
-    dette = h.prix - apport
-    plancher = min(h.amortir_jusqua * h.prix, dette)
-    amort_annuel = (dette - plancher) / h.duree_amort
-
-    epargne_locataire = capital_depart   # le locataire place tout son capital
-    epargne_acheteur = 0.0               # l'acheteur a tout mis dans le logement
+    dette = h.emprunt
+    epargne_locataire = h.epargne                         # le locataire place tout
+    epargne_acheteur = h.epargne - h.apport - h.frais     # l'acheteur place le reste
 
     lignes = []
     for t in range(1, h.horizon + 1):
@@ -94,7 +110,7 @@ def simuler(h: Hypotheses) -> list[dict]:
         valeur_fin = h.prix * (1 + h.hausse_prix) ** t
 
         interets = h.taux_hypo * dette
-        amort = min(amort_annuel, dette - plancher) if t <= h.duree_amort else 0.0
+        amort = min(h.amort_annuel, dette) if t <= h.duree_amort else 0.0
         entretien = h.entretien * valeur_debut
         cout_acheteur = interets + amort + entretien
 
@@ -132,3 +148,7 @@ def annee_equilibre(lignes: list[dict]):
         if all(x["ecart"] >= 0 for x in lignes[i:]):
             return l["annee"]
     return None
+
+
+def fmt(x: float) -> str:
+    return f"{x:,.0f} CHF".replace(",", "'")
