@@ -64,7 +64,7 @@ def bandeau(taux_hypo: dict) -> str:
     il_y_a_mois = (date.today() - timedelta(days=150)).strftime("%Y-%m")
     elements = [
         ("SARON", serie_bns("zimoma", (("D0", "SARON"),), il_y_a_mois), "%", 2),
-        ("Oblig. Confédération 10 ans", serie_bns("rendoblid", (("D0", "10J"),), il_y_a), "%", 2),
+        ("Oblig. Confédération 10 ans", serie_bns("rendoblid", (("D0", "10J0"),), il_y_a), "%", 2),
         ("EUR/CHF", serie_bns("devkum", (("D0", "M0"), ("D1", "EUR1")), il_y_a_mois), "", 4),
         ("USD/CHF", serie_bns("devkum", (("D0", "M0"), ("D1", "USD1")), il_y_a_mois), "", 4),
         ("GBP/CHF", serie_bns("devkum", (("D0", "M0"), ("D1", "GBP1")), il_y_a_mois), "", 4),

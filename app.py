@@ -7,7 +7,9 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
-from marche import CSS as CSS_MARCHE, bandeau
+from datetime import date, timedelta
+
+from marche import CSS as CSS_MARCHE, bandeau, serie_bns
 from model import Hypotheses, amortissement_minimum, annee_equilibre, controle_financement, simuler
 
 st.set_page_config(page_title="Acheter ou louer à Genève ?", page_icon="🏠", layout="wide")
@@ -162,15 +164,29 @@ horizon = sb.slider("Combien d'années comptez-vous rester ?", 1, 40, 30)
 
 sb.divider()
 sb.caption("Hypothèses (préremplies, modifiables)")
+# Valeurs par défaut tirées de données publiques (voir README) :
+# - hausse des prix : OFS, indice IMPI, T4 2019 = 100 -> T3 2026 = 129,8, soit +3,9 % par an
+# - hausse des loyers : OCSTAT, loyers libres non neufs, +1,8 % (2024-25) et +1,3 % (2025-26) -> 1,5 % par an
+# - rendement : BNS, obligations de la Confédération à 10 ans (dernière valeur, lue en direct ; 0,575 % au 26.11.2026)
+# - frais d'achat : droits d'enregistrement 3 % (LDE, Genève) + registre foncier et notaire ~1 % -> 4 %
+oblig = serie_bns("rendoblid", (("D0", "10J0"),), (date.today() - timedelta(days=60)).isoformat())
+REND_DEFAUT = round(oblig["valeur"], 2) if oblig else 0.58
+
 with sb.expander("Marché", expanded=False):
-    hausse_prix = st.number_input("Hausse annuelle des prix de l'immobilier (%)", -10.0, 10.0, 1.5, 0.1)
-    hausse_loyers = st.number_input("Hausse annuelle des loyers (%)", -5.0, 10.0, 1.0, 0.1)
-    rendement = st.number_input("Rendement net de l'épargne placée (%)", -5.0, 15.0, 2.0, 0.1)
+    hausse_prix = st.number_input("Hausse annuelle des prix de l'immobilier (%)", -10.0, 10.0, 3.9, 0.1,
+                                  help="OFS, indice des prix de l'immobilier résidentiel (IMPI) : +29,8 % entre fin 2019 et le 3e trimestre 2026.")
+    hausse_loyers = st.number_input("Hausse annuelle des loyers (%)", -5.0, 10.0, 1.5, 0.1,
+                                    help="OCSTAT, loyers libres à Genève : +1,8 % (2024-2025) et +1,3 % (2025-2026).")
+    rendement = st.number_input("Rendement de l'épargne placée (%)", -5.0, 15.0, REND_DEFAUT, 0.05,
+                                help="BNS, rendement des obligations de la Confédération à 10 ans (placement sans risque), dernière valeur publiée.")
 
 with sb.expander("Frais", expanded=False):
-    frais_achat = st.number_input("Frais d'achat (% du prix)", 0.0, 15.0, 5.0, 0.5)
-    frais_vente = st.number_input("Frais de vente (% du prix de vente)", 0.0, 10.0, 3.0, 0.5)
-    entretien = st.number_input("Entretien et charges (% de la valeur/an)", 0.0, 5.0, 1.0, 0.1)
+    frais_achat = st.number_input("Frais d'achat (% du prix)", 0.0, 15.0, 4.0, 0.5,
+                                  help="Droits d'enregistrement genevois 3 % (loi D 3 30) + registre foncier et notaire, environ 1 %.")
+    frais_vente = st.number_input("Frais de vente (% du prix de vente)", 0.0, 10.0, 3.0, 0.5,
+                                  help="Commission de courtage usuelle (2 à 3 %).")
+    entretien = st.number_input("Entretien et charges (% de la valeur/an)", 0.0, 5.0, 1.0, 0.1,
+                                help="Règle des banques suisses (ex. calculateur UBS) : environ 1 % de la valeur par an.")
 
 # ---------------------------------------------------------------- En-tête
 ticker = bandeau(TAUX_BNS)
