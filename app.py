@@ -11,7 +11,8 @@ from model import Hypotheses, amortissement_minimum, annee_equilibre, controle_f
 
 st.set_page_config(page_title="Acheter ou louer à Genève ?", page_icon="🏠", layout="wide")
 
-BLEU, ORANGE = "#257de0", "#f47230"   # Acheter, Louer (palette validée daltonisme)
+BLEU, ORANGE = "#338ced", "#e76624"   # Acheter, Louer (palette validée daltonisme, mode sombre)
+TEXTE, TEXTE2, GRILLE = "#efefef", "#9c9c9c", "#23272e"
 
 st.markdown("""
 <style>
@@ -32,26 +33,26 @@ st.markdown("""
 .chip {display: inline-block; background: rgba(255,255,255,.14); color: #fff; border-radius: 999px;
        padding: 4px 12px; font-size: .82rem; margin: 0 6px 6px 0;}
 .section {display: flex; align-items: center; gap: 12px; margin: 30px 0 12px 0;}
-.section .num {background: #e8f1fc; color: #1d4f8c; font-weight: 700; border-radius: 10px;
+.section .num {background: #16283f; color: #8cc0f5; font-weight: 700; border-radius: 10px;
                width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;}
-.section .titre {font-size: 1.35rem; font-weight: 700; color: #191919;}
-div[data-testid="stMetric"] {background: #fff; border: 1px solid #e6eaf0; border-radius: 14px;
-       padding: 14px 18px; box-shadow: 0 1px 3px rgba(15,42,74,.06);}
-div[data-testid="stMetricLabel"] p {color: #666; font-size: .86rem;}
-div[data-testid="stMetricValue"] {font-size: 1.55rem; color: #191919;}
+.section .titre {font-size: 1.35rem; font-weight: 700; color: #efefef;}
+div[data-testid="stMetric"] {background: #14171c; border: 1px solid #262a31; border-radius: 14px;
+       padding: 14px 18px;}
+div[data-testid="stMetricLabel"] p {color: #9c9c9c; font-size: .86rem;}
+div[data-testid="stMetricValue"] {font-size: 1.55rem; color: #efefef;}
 .checks {display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 4px 0;}
 .check {border-radius: 12px; padding: 10px 14px; font-size: .92rem; border: 1px solid;}
-.check.ok {background: #effaf3; border-color: #bfe8cf; color: #14532d;}
-.check.ko {background: #fdf0f0; border-color: #f3c4c4; color: #7f1d1d;}
-.verdict {border-radius: 16px; padding: 22px 26px; margin: 4px 0 18px 0; border: 1px solid #e6eaf0;}
-.verdict .big {font-size: 1.6rem; font-weight: 700; color: #191919; line-height: 1.25;}
-.verdict .small {color: #555; margin-top: 6px; font-size: 1rem;}
-.verdict.achat {background: #eef5fd; border-left: 6px solid #257de0;}
-.verdict.loc {background: #fef3ec; border-left: 6px solid #f47230;}
+.check.ok {background: #0f2418; border-color: #1f5a37; color: #8be0a9;}
+.check.ko {background: #2a1213; border-color: #6b2a2c; color: #f5a3a3;}
+.verdict {border-radius: 16px; padding: 22px 26px; margin: 4px 0 18px 0; border: 1px solid #262a31;}
+.verdict .big {font-size: 1.6rem; font-weight: 700; color: #efefef; line-height: 1.25;}
+.verdict .small {color: #b5b5b5; margin-top: 6px; font-size: 1rem;}
+.verdict.achat {background: #0f1d2e; border-left: 6px solid #338ced;}
+.verdict.loc {background: #2a170d; border-left: 6px solid #e76624;}
 .etapes {display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 6px;}
-.etape {background: #f4f6fa; border-radius: 14px; padding: 18px;}
-.etape b {display: block; color: #1d4f8c; margin-bottom: 4px;}
-section[data-testid="stSidebar"] h2 {font-size: 1.02rem; color: #1d4f8c; margin-top: .6rem;}
+.etape {background: #14171c; border: 1px solid #262a31; border-radius: 14px; padding: 18px;}
+.etape b {display: block; color: #8cc0f5; margin-bottom: 4px;}
+section[data-testid="stSidebar"] h2 {font-size: 1.02rem; color: #8cc0f5; margin-top: .6rem;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -216,12 +217,13 @@ c3.metric(f"Patrimoine après {horizon} ans", f"{chf(fin_h['patrimoine_acheteur'
 # ---------------------------------------------------------------- Graphiques
 section(3, "L'évolution année par année")
 
-AXES = dict(gridColor="#eef1f5", domain=False, tickColor="#e6eaf0",
-            labelColor="#666666", titleColor="#666666", labelFontSize=12, titleFontSize=12)
+AXES = dict(gridColor=GRILLE, domain=False, tickColor=GRILLE,
+            labelColor=TEXTE2, titleColor=TEXTE2, labelFontSize=12, titleFontSize=12)
 
 def style(ch):
     return (ch.configure_axis(**AXES).configure_view(stroke=None)
-              .configure_legend(orient="top", labelColor="#191919", labelFontSize=13))
+              .configure_legend(orient="top", labelColor=TEXTE, titleColor=TEXTE2, labelFontSize=13)
+              .configure(background="transparent"))
 
 large = df[["annee", "patrimoine_acheteur", "patrimoine_locataire", "ecart"]]
 long = large.melt(id_vars="annee", value_vars=["patrimoine_acheteur", "patrimoine_locataire"],
@@ -236,9 +238,9 @@ base = alt.Chart(long).encode(
     color=alt.Color("option:N", scale=couleurs, legend=alt.Legend(title=None)),
 )
 courbes = base.mark_line(strokeWidth=2.5, interpolate="monotone")
-points = base.mark_point(filled=True, size=80, stroke="white", strokeWidth=2).encode(
+points = base.mark_point(filled=True, size=80, stroke="#0a0b0d", strokeWidth=2).encode(
     opacity=alt.condition(survol, alt.value(1), alt.value(0)))
-curseur = alt.Chart(large).mark_rule(strokeWidth=16, color="#191919").encode(
+curseur = alt.Chart(large).mark_rule(strokeWidth=16, color="#ffffff").encode(
     x="annee:Q",
     opacity=alt.condition(survol, alt.value(0.08), alt.value(0)),
     tooltip=[alt.Tooltip("annee:Q", title="Année"),
@@ -247,12 +249,12 @@ curseur = alt.Chart(large).mark_rule(strokeWidth=16, color="#191919").encode(
              alt.Tooltip("ecart:Q", title="Écart (CHF)", format="+,.0f")],
 ).add_params(survol)
 etiquettes = base.transform_filter(alt.datum.annee == horizon).mark_text(
-    align="left", dx=8, fontSize=13, fontWeight="bold").encode(text="option:N", color=alt.value("#191919"))
+    align="left", dx=8, fontSize=13, fontWeight="bold").encode(text="option:N", color=alt.value(TEXTE))
 couches = [courbes, points, curseur, etiquettes]
 if eq:
     seuil = pd.DataFrame({"annee": [eq], "txt": [f"Équilibre : année {eq}"]})
-    couches.insert(0, alt.Chart(seuil).mark_rule(strokeDash=[5, 5], color="#999999").encode(x="annee:Q"))
-    couches.append(alt.Chart(seuil).mark_text(align="left", dx=6, dy=-6, color="#666666", fontSize=12)
+    couches.insert(0, alt.Chart(seuil).mark_rule(strokeDash=[5, 5], color=TEXTE2).encode(x="annee:Q"))
+    couches.append(alt.Chart(seuil).mark_text(align="left", dx=6, dy=-6, color=TEXTE2, fontSize=12)
                    .encode(x="annee:Q", y=alt.value(12), text="txt:N"))
 
 onglet1, onglet2, onglet3, onglet4 = st.tabs(["📈 Patrimoine", "📊 Écart par année", "🔀 Scénarios", "📋 Tableau"])
@@ -272,7 +274,7 @@ with onglet2:
         tooltip=[alt.Tooltip("annee:Q", title="Année"), alt.Tooltip("gagnant:N", title="Plus rentable"),
                  alt.Tooltip("ecart:Q", title="Écart (CHF)", format="+,.0f")],
     )
-    zero = alt.Chart(pd.DataFrame({"y": [0]})).mark_rule(color="#999999").encode(y="y:Q")
+    zero = alt.Chart(pd.DataFrame({"y": [0]})).mark_rule(color=TEXTE2).encode(y="y:Q")
     st.altair_chart(style(alt.layer(barres, zero).properties(height=380)), use_container_width=True)
     st.caption("Au-dessus de zéro, acheter vous laisse plus de patrimoine ; en dessous, c'est la location.")
 
