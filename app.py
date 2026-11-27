@@ -177,7 +177,8 @@ if manquants:
   <div class="etape"><b>3 · Votre hypothèque</b>Combien vous empruntez ; le taux se remplit tout seul.</div>
 </div>
 """, unsafe_allow_html=True)
-    st.info("👈 Il manque encore : " + ", ".join(manquants) + ".")
+    liste = manquants[0] if len(manquants) == 1 else ", ".join(manquants[:-1]) + " et " + manquants[-1]
+    st.info("Entrez " + liste + ".")
     pied_de_page()
     st.stop()
 
