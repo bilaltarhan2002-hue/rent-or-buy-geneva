@@ -17,9 +17,16 @@ st.markdown("""
 <style>
 .block-container {padding-top: 2rem; max-width: 1150px;}
 #MainMenu, footer {visibility: hidden;}
-.hero {background: linear-gradient(120deg, #0f2a4a 0%, #1d4f8c 60%, #257de0 100%);
-       color: #fff; border-radius: 18px; padding: 30px 34px; margin-bottom: 26px;}
-.hero h1 {color: #fff; font-size: 2.1rem; margin: 0 0 8px 0; padding: 0; line-height: 1.2;}
+.hero {position: relative; color: #fff; border-radius: 20px; padding: 46px 38px 40px 38px;
+       margin-bottom: 26px; min-height: 270px; overflow: hidden;
+       background:
+         linear-gradient(100deg, rgba(10,28,52,.92) 0%, rgba(15,42,74,.78) 45%, rgba(15,42,74,.15) 100%),
+         url("https://upload.wikimedia.org/wikipedia/commons/a/ab/Geneve_2005_001_Ork.ch.jpg")
+         center 45% / cover no-repeat, #0f2a4a;
+       box-shadow: 0 10px 30px rgba(15,42,74,.18);}
+.hero .credit {position: absolute; right: 14px; bottom: 8px; font-size: .68rem; color: rgba(255,255,255,.7);}
+.hero .credit a {color: rgba(255,255,255,.7);}
+.hero h1 {color: #fff; font-size: 2.4rem; margin: 0 0 8px 0; padding: 0; line-height: 1.2;}
 .hero p {color: #dbe7f7; font-size: 1.02rem; margin: 0; max-width: 760px;}
 .chips {margin-top: 16px;}
 .chip {display: inline-block; background: rgba(255,255,255,.14); color: #fff; border-radius: 999px;
@@ -122,6 +129,7 @@ st.markdown("""
   <b>à partir de quand acheter devient plus rentable</b>.</p>
   <div class="chips"><span class="chip">Règles des banques suisses</span>
   <span class="chip">Taux BNS</span><span class="chip">Marché genevois</span></div>
+  <div class="credit">Photo : Ork.ch, <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank">CC BY 2.0</a>, via Wikimedia Commons</div>
 </div>
 """, unsafe_allow_html=True)
 
