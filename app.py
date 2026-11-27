@@ -235,7 +235,7 @@ survol = alt.selection_point(fields=["annee"], nearest=True, on="mouseover", emp
 base = alt.Chart(long).encode(
     x=alt.X("annee:Q", title="Années", axis=alt.Axis(tickMinStep=1, format="d")),
     y=alt.Y("patrimoine:Q", title="Patrimoine net (CHF)", axis=alt.Axis(format="~s")),
-    color=alt.Color("option:N", scale=couleurs, legend=alt.Legend(title=None)),
+    color=alt.Color("option:N", scale=couleurs, legend=alt.Legend(title=None, orient="top", direction="horizontal")),
 )
 courbes = base.mark_line(strokeWidth=2.5, interpolate="monotone")
 points = base.mark_point(filled=True, size=80, stroke="#2b2e34", strokeWidth=2).encode(
@@ -270,7 +270,7 @@ with onglet2:
     barres = alt.Chart(ecart).mark_bar(cornerRadiusEnd=4, size=14).encode(
         x=alt.X("annee:Q", title="Années", axis=alt.Axis(tickMinStep=1, format="d")),
         y=alt.Y("ecart:Q", title="Avance de l'achat sur la location (CHF)", axis=alt.Axis(format="~s")),
-        color=alt.Color("gagnant:N", scale=couleurs, legend=alt.Legend(title="Plus rentable")),
+        color=alt.Color("gagnant:N", scale=couleurs, legend=alt.Legend(title="Plus rentable", orient="top", direction="horizontal")),
         tooltip=[alt.Tooltip("annee:Q", title="Année"), alt.Tooltip("gagnant:N", title="Plus rentable"),
                  alt.Tooltip("ecart:Q", title="Écart (CHF)", format="+,.0f")],
     )
