@@ -40,8 +40,15 @@ if prix and emprunt is not None:
     part = apport_calc / prix if prix else 0
     sb.caption(f"➡️ Votre apport : **{chf(apport_calc)}** ({part:.0%} du prix) "
                f"· emprunt maximum : {chf(0.8 * prix)}")
-taux = sb.number_input("Taux hypothécaire (%)", min_value=0.0, max_value=15.0, value=None, step=0.05,
-                       format="%.2f", placeholder="ex. 1.90")
+# Taux moyens des nouvelles hypothèques, BNS (portail data.snb.ch, cube zikrepro), avril 2026.
+# À mettre à jour avec le dernier mois publié.
+TAUX_BNS = {"Fixe 5 ans": 1.70, "Fixe 10 ans": 1.98}
+type_hypo = sb.selectbox("Type d'hypothèque", list(TAUX_BNS), index=1)
+taux = sb.number_input("Taux hypothécaire (%)", min_value=0.0, max_value=15.0,
+                       value=TAUX_BNS[type_hypo], step=0.05, format="%.2f",
+                       key=f"taux_{type_hypo}",
+                       help="Taux moyen du marché pour ce type d'hypothèque. "
+                            "Modifiez-le si votre banque vous propose un autre taux.")
 amort_min = amortissement_minimum(prix, emprunt) if prix and emprunt is not None else None
 amort = sb.number_input("Combien remboursez-vous par an ? (CHF)", min_value=0, value=None, step=1_000,
                         placeholder=f"minimum {amort_min:,.0f}".replace(",", "'") if amort_min is not None else "ex. 10667",
@@ -74,7 +81,7 @@ st.write(
 
 manquants = [nom for nom, v in [
     ("le prix du logement", prix), ("le loyer", loyer), ("votre revenu", revenu),
-    ("votre épargne", epargne), ("le montant emprunté", emprunt), ("le taux hypothécaire", taux),
+    ("votre épargne", epargne), ("le montant emprunté", emprunt),
 ] if v is None or (nom in ("le prix du logement", "le loyer") and v == 0)]
 if manquants:
     st.info("👈 Remplissez dans la barre de gauche : " + ", ".join(manquants) + ".")
