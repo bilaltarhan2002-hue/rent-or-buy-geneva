@@ -6,9 +6,11 @@ Lancer avec :  streamlit run app.py
 import altair as alt
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 from datetime import date, timedelta
 
+from graphique import graphique_anime
 from marche import CSS as CSS_MARCHE, bandeau, serie_bns
 from model import Hypotheses, amortissement_minimum, annee_equilibre, controle_financement, simuler
 
@@ -334,10 +336,10 @@ if eq:
 onglet1, onglet2, onglet3, onglet4 = st.tabs(["📈 Patrimoine", "📊 Écart par année", "🔀 Scénarios", "📋 Tableau"])
 
 with onglet1:
-    st.altair_chart(style(alt.layer(*couches).properties(height=400, padding={"right": 70})),
-                    use_container_width=True)
+    components.html(graphique_anime(df["annee"], df["patrimoine_acheteur"], df["patrimoine_locataire"], eq),
+                    height=410)
     st.caption("Patrimoine net si vous vendez (ou arrêtez de louer) à la fin de chaque année. "
-               "Passez la souris sur le graphique pour voir les montants.")
+               "Les courbes se redessinent à chaque simulation ; passez la souris pour voir les montants.")
 
 with onglet2:
     ecart = large.assign(gagnant=lambda d: d["ecart"].map(lambda v: "Acheter" if v >= 0 else "Louer"))
