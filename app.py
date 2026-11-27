@@ -10,11 +10,26 @@ import streamlit.components.v1 as components
 
 from datetime import date, timedelta
 
+import csv
+import importlib
+from pathlib import Path
+
+import graphique as _graphique
+import marche as _marche
+import model as _model
+
+for _mod in (_model, _marche, _graphique):   # évite qu'une ancienne version reste en mémoire après une mise à jour
+    importlib.reload(_mod)
+
 from graphique import graphique_anime
 from marche import CSS as CSS_MARCHE, bandeau, serie_bns, taux_hypothecaires
 from model import Hypotheses, amortissement_minimum, annee_equilibre, controle_financement, simuler
 
 st.set_page_config(page_title="Acheter ou louer à Genève ?", page_icon="🏠", layout="wide")
+
+# Paramètres par défaut préparés à partir des données publiques brutes (data/preparer_donnees.py)
+with open(Path(__file__).resolve().parent / "data" / "parametres.csv", encoding="utf-8") as _f:
+    PARAMS = {r["parametre"]: float(r["valeur"]) for r in csv.DictReader(_f)}
 
 BLEU, ORANGE = "#338ced", "#e76624"   # Acheter, Louer (palette validée daltonisme, mode sombre)
 TEXTE, TEXTE2, GRILLE = "#efefef", "#b0b0b0", "#3d4148"
@@ -94,14 +109,16 @@ def sources_et_methode():
 |---|---|---|---|
 | Taux hypothécaire fixe 5 ans | {t5:.2f} % | Banque nationale suisse (BNS), [data.snb.ch](https://data.snb.ch), série *zikrepro* | Moyenne des taux publiés pour les nouvelles hypothèques, {MOIS_TAUX}. Lu automatiquement. |
 | Taux hypothécaire fixe 10 ans | {t10:.2f} % | BNS, série *zikrepro* | Idem. |
-| Hausse des prix de l'immobilier | 3,0 % / an | Office cantonal de la statistique (OCSTAT), statistique des transactions immobilières | Prix médian au m² des appartements non neufs à Genève : 8 535 CHF (2016) → 10 853 CHF (2024), soit (10 853 / 8 535)^(1/8) − 1 ≈ 3,0 %. |
-| Hausse des loyers | 1,5 % / an | OCSTAT, statistique cantonale des loyers | Loyers libres non neufs à Genève : +1,8 % (mai 2024 → mai 2025) et +1,3 % (mai 2025 → mai 2026). Moyenne ≈ 1,5 %. |
+| Hausse des prix de l'immobilier | {PARAMS["hausse_prix"]:.2f} % / an | Office cantonal de la statistique (OCSTAT), statistique des transactions immobilières | Prix médian au m² des appartements non neufs à Genève : 8 535 CHF (2016) → 10 853 CHF (2024), soit (10 853 / 8 535)^(1/8) − 1. |
+| Hausse des loyers | {PARAMS["hausse_loyers"]:.2f} % / an | OCSTAT, statistique cantonale des loyers | Loyers libres non neufs à Genève : +1,8 % (mai 2024 → mai 2025) et +1,3 % (mai 2025 → mai 2026). Moyenne géométrique des deux. |
 | Rendement de l'épargne | {REND_DEFAUT:.2f} % | BNS, série *rendoblid* | Rendement des obligations de la Confédération à 10 ans (placement sans risque), {d_obl}. Lu automatiquement. |
-| Frais d'achat | 4 % du prix | Loi genevoise sur les droits d'enregistrement (rsGE D 3 30) | Droits d'enregistrement 3 % + registre foncier (~0,3 %) et notaire (~0,5 à 0,7 %). |
+| Frais d'achat | {PARAMS["frais_achat"]:.1f} % du prix | Loi genevoise sur les droits d'enregistrement (rsGE D 3 30) | Droits d'enregistrement 3 % + registre foncier 0,3 % + notaire 0,6 % (milieu de la fourchette 0,5–0,7 %). |
 | Frais de vente | 3 % du prix | Pratique du marché | Commission de courtage usuelle (2 à 3 %). |
 | Entretien | 1 % de la valeur / an | Règles des banques suisses (p. ex. calculateur UBS) | Valeur utilisée par les banques pour les frais d'entretien. |
 | Règles de financement | 20 % d'apport, charges ≤ 1/3 du revenu au taux théorique de 5 %, dette ramenée à 2/3 du prix en 15 ans | Directives de l'Association suisse des banquiers ; calculateur UBS | Appliquées telles quelles dans « Votre financement est-il possible ? ». |
 | Bandeau défilant | SARON, obligations 10 ans, EUR/CHF, USD/CHF, GBP/CHF | BNS, séries *zimoma*, *rendoblid*, *devkum* | Dernières valeurs publiées, relues toutes les 3 heures. |
+
+**Préparation des données** : les chiffres bruts et leur source sont dans le dossier `data/brut/` du projet GitHub. Le script `data/preparer_donnees.py` calcule chaque paramètre (formules ci-dessus) et écrit `data/parametres.csv`, que l'application lit au démarrage. Les séries BNS sont en plus relues en direct.
 
 **Méthode de calcul**
 - **Même départ** : les deux ménages ont la même épargne. L'acheteur paie l'apport et les frais d'achat avec, et place le reste ; le locataire place tout.
@@ -182,7 +199,8 @@ if prix and emprunt is not None:
                f"· emprunt maximum : {chf(0.8 * prix)}")
 # Taux moyens publiés pour les nouvelles hypothèques : BNS, cube zikrepro (D0 = "M" moyenne,
 # D1 = "50" fixe 5 ans / "10" fixe 10 ans), lus en direct. Valeurs de secours : septembre 2026.
-TAUX_BNS, MOIS_TAUX = taux_hypothecaires()
+TAUX_BNS, MOIS_TAUX = taux_hypothecaires({"Fixe 5 ans": round(PARAMS["taux_fixe_5_ans"], 2),
+                                            "Fixe 10 ans": round(PARAMS["taux_fixe_10_ans"], 2)})
 type_hypo = sb.selectbox("Type d'hypothèque", list(TAUX_BNS), index=1)
 taux = sb.number_input("Taux hypothécaire (%)", min_value=0.0, max_value=15.0,
                        value=TAUX_BNS[type_hypo], step=0.05, format="%.2f",
@@ -202,27 +220,28 @@ horizon = sb.slider("Combien d'années comptez-vous rester ?", 1, 40, 30)
 sb.divider()
 sb.caption("Hypothèses (préremplies, modifiables)")
 # Valeurs par défaut tirées de données publiques (voir README) :
-# - hausse des prix : OCSTAT, appartements PPE non neufs, prix médian au m2 : 8 535 CHF (2016) -> 10 853 CHF (2024), soit +3,0 % par an
+# Toutes ces valeurs sont calculées par data/preparer_donnees.py et lues dans data/parametres.csv :
+# - hausse des prix : OCSTAT, appartements PPE non neufs, prix médian au m2 : 8 535 CHF (2016) -> 10 853 CHF (2024)
 # - hausse des loyers : OCSTAT, loyers libres non neufs, +1,8 % (2024-25) et +1,3 % (2025-26) -> 1,5 % par an
 # - rendement : BNS, obligations de la Confédération à 10 ans (dernière valeur, lue en direct ; 0,575 % au 26.11.2026)
-# - frais d'achat : droits d'enregistrement 3 % (LDE, Genève) + registre foncier et notaire ~1 % -> 4 %
+# - frais d'achat : droits d'enregistrement 3 % (LDE, Genève) + registre foncier 0,3 % + notaire 0,6 %
 oblig = serie_bns("rendoblid", (("D0", "10J0"),), (date.today() - timedelta(days=60)).isoformat())
-REND_DEFAUT = round(float(oblig["valeur"]), 2) if oblig else 0.58
+REND_DEFAUT = round(float(oblig["valeur"]), 2) if oblig else round(PARAMS["rendement_epargne"], 2)
 
 with sb.expander("Marché", expanded=False):
-    hausse_prix = st.number_input("Hausse annuelle des prix de l'immobilier (%)", -10.0, 10.0, 3.0, 0.1,
+    hausse_prix = st.number_input("Hausse annuelle des prix de l'immobilier (%)", -10.0, 10.0, round(PARAMS["hausse_prix"], 2), 0.1,
                                   help="OCSTAT, prix médian au m² des appartements non neufs à Genève : 8 535 CHF en 2016, 10 853 CHF en 2024.")
-    hausse_loyers = st.number_input("Hausse annuelle des loyers (%)", -5.0, 10.0, 1.5, 0.1,
+    hausse_loyers = st.number_input("Hausse annuelle des loyers (%)", -5.0, 10.0, round(PARAMS["hausse_loyers"], 2), 0.1,
                                     help="OCSTAT, loyers libres à Genève : +1,8 % (2024-2025) et +1,3 % (2025-2026).")
     rendement = st.number_input("Rendement de l'épargne placée (%)", -5.0, 15.0, REND_DEFAUT, 0.05,
                                 help="BNS, rendement des obligations de la Confédération à 10 ans (placement sans risque), dernière valeur publiée.")
 
 with sb.expander("Frais", expanded=False):
-    frais_achat = st.number_input("Frais d'achat (% du prix)", 0.0, 15.0, 4.0, 0.5,
-                                  help="Droits d'enregistrement genevois 3 % (loi D 3 30) + registre foncier et notaire, environ 1 %.")
-    frais_vente = st.number_input("Frais de vente (% du prix de vente)", 0.0, 10.0, 3.0, 0.5,
+    frais_achat = st.number_input("Frais d'achat (% du prix)", 0.0, 15.0, round(PARAMS["frais_achat"], 2), 0.5,
+                                  help="Droits d'enregistrement genevois 3 % (loi D 3 30) + registre foncier 0,3 % + notaire 0,6 %.")
+    frais_vente = st.number_input("Frais de vente (% du prix de vente)", 0.0, 10.0, round(PARAMS["frais_vente"], 2), 0.5,
                                   help="Commission de courtage usuelle (2 à 3 %).")
-    entretien = st.number_input("Entretien et charges (% de la valeur/an)", 0.0, 5.0, 1.0, 0.1,
+    entretien = st.number_input("Entretien et charges (% de la valeur/an)", 0.0, 5.0, round(PARAMS["entretien"], 2), 0.1,
                                 help="Règle des banques suisses (ex. calculateur UBS) : environ 1 % de la valeur par an.")
 
 # ---------------------------------------------------------------- En-tête

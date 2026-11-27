@@ -49,9 +49,9 @@ def serie_bns(cube, filtre, depuis=None):
         return None
 
 
-def taux_hypothecaires():
+def taux_hypothecaires(secours_taux):
     """Taux moyens BNS des hypothèques fixes 5 et 10 ans (dernier mois publié)."""
-    secours = {"Fixe 5 ans": 2.03, "Fixe 10 ans": 2.20}, "septembre 2026"
+    secours = secours_taux, "septembre 2026"
     depuis = (date.today() - timedelta(days=240)).strftime("%Y-%m")
     t5 = serie_bns("zikrepro", (("D0", "M"), ("D1", "50")), depuis)
     t10 = serie_bns("zikrepro", (("D0", "M"), ("D1", "10")), depuis)

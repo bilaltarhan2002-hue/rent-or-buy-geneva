@@ -1,0 +1,9 @@
+parametre,valeur_pct,source
+droits_enregistrement,3.0,"Loi genevoise sur les droits d'enregistrement (rsGE D 3 30) https://silgeneve.ch/legis/data/rsg_d3_30.htm"
+registre_foncier,0.3,"Estimation usuelle (neho.ch, Casatax a Geneve) https://neho.ch/fr/blog/casatax"
+notaire,0.6,"Estimation usuelle 0.5 a 0.7 % (neho.ch) https://neho.ch/fr/blog/casatax ; milieu de la fourchette"
+frais_vente,3.0,"Commission de courtage usuelle 2 a 3 % (juriup.ch) https://juriup.ch/outils/frais-de-notaire/ ; haut de la fourchette par prudence"
+entretien,1.0,"Calculateur hypothecaire UBS https://www.ubs.com/ch/fr/services/mortgages-and-financing/calculators/mortgage-calculator.html"
+apport_minimum,20.0,"Calculateur hypothecaire UBS ; directives de l'Association suisse des banquiers"
+taux_theorique,5.0,"Calculateur hypothecaire UBS ; directives de l'Association suisse des banquiers"
+charges_max_revenu,33.33,"Calculateur hypothecaire UBS ; directives de l'Association suisse des banquiers"

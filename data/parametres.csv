@@ -1,0 +1,12 @@
+parametre,valeur,unite,formule,source
+taux_fixe_5_ans,2.026,%,dernière valeur mensuelle (2026-09),https://data.snb.ch/api/cube/zikrepro/data/csv/en (D0=M D1=50)
+taux_fixe_10_ans,2.2034,%,dernière valeur mensuelle (2026-09),https://data.snb.ch/api/cube/zikrepro/data/csv/en (D0=M D1=10)
+hausse_prix,3.0489,% / an,"(10853 / 8535)^(1/8) - 1, prix médian au m2 2016 -> 2024","OCSTAT, Informations statistiques n°28, novembre 2017 (transactions immobilieres 2016) https://statistique.ge.ch/statistique/tel/publications/2017/informations_statistiques/services_immo/is_ti_28_2017.pdf ; OCSTAT, Informations statistiques n°11, novembre 2025 (transactions immobilieres 2024) https://statistique.ge.ch/statistique/tel/publications/2025/informations_statistiques/services_immo/is_ti_11_2025.pdf"
+hausse_loyers,1.5497,% / an,moyenne géométrique de 1.8 % et 1.3 %,"OCSTAT, Bulletin statistique mensuel n°06, juin 2026 https://statistique.ge.ch/statistique/tel/publications/2026/donnees_generales/bulletin_stat/dg-bs-06-2026.pdf"
+rendement_epargne,0.575,% / an,rendement au 2026-11-26 (l'application lit la dernière valeur en direct),https://www.snb.ch/fr/srv/current_interest_exchange_rates
+frais_achat,3.9,% du prix,droits d'enregistrement + registre foncier + notaire = 3.0 + 0.3 + 0.6,"Loi genevoise sur les droits d'enregistrement (rsGE D 3 30) https://silgeneve.ch/legis/data/rsg_d3_30.htm ; Estimation usuelle (neho.ch, Casatax a Geneve) https://neho.ch/fr/blog/casatax ; Estimation usuelle 0.5 a 0.7 % (neho.ch) https://neho.ch/fr/blog/casatax ; milieu de la fourchette"
+frais_vente,3.0,%,valeur reprise telle quelle,Commission de courtage usuelle 2 a 3 % (juriup.ch) https://juriup.ch/outils/frais-de-notaire/ ; haut de la fourchette par prudence
+entretien,1.0,%,valeur reprise telle quelle,Calculateur hypothecaire UBS https://www.ubs.com/ch/fr/services/mortgages-and-financing/calculators/mortgage-calculator.html
+apport_minimum,20.0,%,valeur reprise telle quelle,Calculateur hypothecaire UBS ; directives de l'Association suisse des banquiers
+taux_theorique,5.0,%,valeur reprise telle quelle,Calculateur hypothecaire UBS ; directives de l'Association suisse des banquiers
+charges_max_revenu,33.33,%,valeur reprise telle quelle,Calculateur hypothecaire UBS ; directives de l'Association suisse des banquiers
