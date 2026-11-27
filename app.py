@@ -362,6 +362,7 @@ duree_amort = sb.slider("Pendant combien d'années remboursez-vous ?", 1, 40, 15
 sb.header("4. Votre projet")
 horizon = sb.slider("Combien d'années comptez-vous rester ?", 1, 40, 30)
 residence = sb.checkbox("Ce sera ma résidence principale (au moins 3 ans)", value=True, key="residence",
+                        disabled=horizon < 3,
                         help="À Genève, l'achat de sa résidence principale donne droit à Casatax : une réduction "
                              f"des droits d'enregistrement de {PARAMS['casatax_reduction']:,.0f} CHF au maximum, si le prix "
                              f"ne dépasse pas {PARAMS['casatax_plafond']:,.0f} CHF (montants 2026).".replace(",", "'"))
@@ -464,6 +465,8 @@ if fin["casatax"]:
     st.markdown(f'<div class="check ok" style="margin:8px 0">✓ <b>Casatax</b> : comme résidence principale à moins de '
                 f'{chf(h.casatax_plafond)}, vous économisez <b>{chf(fin["casatax"])}</b> de droits d\'enregistrement '
                 f'(aide genevoise, à condition d\'y habiter au moins 3 ans).</div>', unsafe_allow_html=True)
+elif residence and h.horizon < 3:
+    st.caption("Pas de Casatax : il faut habiter le logement au moins 3 ans, sinon la réduction doit être remboursée.")
 elif residence and h.prix > h.casatax_plafond:
     st.caption(f"Pas de Casatax : le prix dépasse le plafond de {chf(h.casatax_plafond)}.")
 for a in fin["avertissements"]:

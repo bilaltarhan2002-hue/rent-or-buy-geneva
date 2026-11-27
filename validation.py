@@ -18,7 +18,7 @@ def calcul_main_annee1(h):
     P, E, D0 = h.prix, h.epargne, h.emprunt
     apport = P - D0
     reduc = min(h.casatax_reduction, h.droits_enregistrement * P) \
-        if (h.residence_principale and P <= h.casatax_plafond) else 0.0
+        if (h.residence_principale and P <= h.casatax_plafond and h.horizon >= 3) else 0.0
     frais = h.frais_achat * P - reduc
     A = min(h.amort_annuel, D0) if h.duree_amort >= 1 else 0.0
 
@@ -33,7 +33,7 @@ def calcul_main_annee1(h):
     W_l = E * (1 + h.rendement) + max(cout - loyer, 0)
 
     pct = lambda x: f"{100 * x:.2f} %"
-    outil = simuler(replace(h, horizon=1))[0]
+    outil = simuler(h)[0]
     lignes = [
         ("Frais d'achat", f"{pct(h.frais_achat)} × {chf(P)}" + (f" − Casatax {chf(reduc)}" if reduc else ""),
          frais, h.frais),

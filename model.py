@@ -53,7 +53,8 @@ class Hypotheses:
     @property
     def casatax(self) -> float:
         """Montant de la réduction Casatax (0 si non applicable)."""
-        if self.residence_principale and self.prix <= self.casatax_plafond:
+        # condition légale : y habiter au moins 3 ans, sinon la réduction doit être remboursée
+        if self.residence_principale and self.prix <= self.casatax_plafond and self.horizon >= 3:
             return min(self.casatax_reduction, self.droits_enregistrement * self.prix)
         return 0.0
 
