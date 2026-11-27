@@ -11,7 +11,7 @@ import streamlit.components.v1 as components
 from datetime import date, timedelta
 
 from graphique import graphique_anime
-from marche import CSS as CSS_MARCHE, bandeau, serie_bns
+from marche import CSS as CSS_MARCHE, bandeau, serie_bns, taux_hypothecaires
 from model import Hypotheses, amortissement_minimum, annee_equilibre, controle_financement, simuler
 
 st.set_page_config(page_title="Acheter ou louer à Genève ?", page_icon="🏠", layout="wide")
@@ -83,16 +83,51 @@ section[data-testid="stSidebar"] h2 {font-size: 1.02rem; color: #8cc0f5; margin-
 st.markdown(f"<style>{CSS_MARCHE}</style>", unsafe_allow_html=True)
 
 
+def sources_et_methode():
+    t5, t10 = TAUX_BNS["Fixe 5 ans"], TAUX_BNS["Fixe 10 ans"]
+    d_obl = ".".join(reversed(oblig["date"].split("-"))) if oblig else "26.11.2026"
+    with st.expander("Sources et méthode"):
+        st.markdown(f"""
+**Toutes les hypothèses par défaut viennent de sources publiques.** L'utilisateur peut les modifier dans la barre de gauche.
+
+| Hypothèse | Valeur par défaut | Source publique | Comment on l'obtient |
+|---|---|---|---|
+| Taux hypothécaire fixe 5 ans | {t5:.2f} % | Banque nationale suisse (BNS), [data.snb.ch](https://data.snb.ch), série *zikrepro* | Moyenne des taux publiés pour les nouvelles hypothèques, {MOIS_TAUX}. Lu automatiquement. |
+| Taux hypothécaire fixe 10 ans | {t10:.2f} % | BNS, série *zikrepro* | Idem. |
+| Hausse des prix de l'immobilier | 3,0 % / an | Office cantonal de la statistique (OCSTAT), statistique des transactions immobilières | Prix médian au m² des appartements non neufs à Genève : 8 535 CHF (2016) → 10 853 CHF (2024), soit (10 853 / 8 535)^(1/8) − 1 ≈ 3,0 %. |
+| Hausse des loyers | 1,5 % / an | OCSTAT, statistique cantonale des loyers | Loyers libres non neufs à Genève : +1,8 % (mai 2024 → mai 2025) et +1,3 % (mai 2025 → mai 2026). Moyenne ≈ 1,5 %. |
+| Rendement de l'épargne | {REND_DEFAUT:.2f} % | BNS, série *rendoblid* | Rendement des obligations de la Confédération à 10 ans (placement sans risque), {d_obl}. Lu automatiquement. |
+| Frais d'achat | 4 % du prix | Loi genevoise sur les droits d'enregistrement (rsGE D 3 30) | Droits d'enregistrement 3 % + registre foncier (~0,3 %) et notaire (~0,5 à 0,7 %). |
+| Frais de vente | 3 % du prix | Pratique du marché | Commission de courtage usuelle (2 à 3 %). |
+| Entretien | 1 % de la valeur / an | Règles des banques suisses (p. ex. calculateur UBS) | Valeur utilisée par les banques pour les frais d'entretien. |
+| Règles de financement | 20 % d'apport, charges ≤ 1/3 du revenu au taux théorique de 5 %, dette ramenée à 2/3 du prix en 15 ans | Directives de l'Association suisse des banquiers ; calculateur UBS | Appliquées telles quelles dans « Votre financement est-il possible ? ». |
+| Bandeau défilant | SARON, obligations 10 ans, EUR/CHF, USD/CHF, GBP/CHF | BNS, séries *zimoma*, *rendoblid*, *devkum* | Dernières valeurs publiées, relues toutes les 3 heures. |
+
+**Méthode de calcul**
+- **Même départ** : les deux ménages ont la même épargne. L'acheteur paie l'apport et les frais d'achat avec, et place le reste ; le locataire place tout.
+- **Même budget** : chaque année, celui dont le logement coûte le moins place la différence au rendement de l'épargne.
+- **Acheteur** : paie les intérêts, le remboursement annuel et l'entretien. Patrimoine = valeur du bien − frais de vente − dette restante + épargne placée.
+- **Locataire** : paie le loyer, qui augmente chaque année. Patrimoine = épargne placée.
+- **Année d'équilibre** : première année à partir de laquelle le patrimoine de l'acheteur reste supérieur à celui du locataire.
+
+**Limites**
+- Pas d'impôts (valeur locative, déductions, impôt sur le gain immobilier, impôt sur la fortune) ni de 2e pilier.
+- Taux hypothécaire constant (renouvellement supposé au même taux).
+- Hausses des prix et des loyers constantes, tirées du passé : elles ne prédisent pas l'avenir.
+- Pas de risque : le rendement du placement et la hausse des prix sont appliqués chaque année comme s'ils étaient garantis.
+""")
+
+
 def pied_de_page():
-    st.markdown("""
+    sources_et_methode()
+    st.markdown(f"""
 <div class="footer">
   <b>Avertissement.</b> Cet outil a été développé à des fins pédagogiques dans le cadre d'un projet universitaire.
   Les résultats reposent sur des hypothèses simplifiées (pas d'impôts, taux constant, hausse des prix et des loyers
   constante) et ne constituent en aucun cas un conseil financier, fiscal ou hypothécaire. Les conditions réelles
   dépendent de votre banque et de votre situation personnelle : consultez un professionnel avant toute décision.<br>
-  Taux hypothécaires préremplis : moyennes publiées par la Banque nationale suisse (avril 2026).
+  Données : Banque nationale suisse, Office cantonal de la statistique (Genève). Taux hypothécaires : {MOIS_TAUX}.
 </div>""", unsafe_allow_html=True)
-
 
 def section(num, titre):
     st.markdown(f'<div class="section"><div class="num">{num}</div><div class="titre">{titre}</div></div>',
@@ -145,14 +180,14 @@ if prix and emprunt is not None:
     part = apport_calc / prix if prix else 0
     sb.caption(f"➡️ Votre apport : **{chf(apport_calc)}** ({part:.0%} du prix) "
                f"· emprunt maximum : {chf(0.8 * prix)}")
-# Taux moyens des nouvelles hypothèques, BNS (portail data.snb.ch, cube zikrepro), avril 2026.
-# À mettre à jour avec le dernier mois publié.
-TAUX_BNS = {"Fixe 5 ans": 1.70, "Fixe 10 ans": 1.98}
+# Taux moyens publiés pour les nouvelles hypothèques : BNS, cube zikrepro (D0 = "M" moyenne,
+# D1 = "50" fixe 5 ans / "10" fixe 10 ans), lus en direct. Valeurs de secours : septembre 2026.
+TAUX_BNS, MOIS_TAUX = taux_hypothecaires()
 type_hypo = sb.selectbox("Type d'hypothèque", list(TAUX_BNS), index=1)
 taux = sb.number_input("Taux hypothécaire (%)", min_value=0.0, max_value=15.0,
                        value=TAUX_BNS[type_hypo], step=0.05, format="%.2f",
                        key=f"taux_{type_hypo}",
-                       help="Taux moyen du marché pour ce type d'hypothèque. "
+                       help=f"Taux moyen des nouvelles hypothèques publié par la BNS ({MOIS_TAUX}). "
                             "Modifiez-le si votre banque vous propose un autre taux.")
 amort_min = amortissement_minimum(prix, emprunt) if prix and emprunt is not None else None
 amort = sb.number_input("Combien remboursez-vous par an ? (CHF)", min_value=0, value=None, key="amort", step=1_000,
@@ -167,16 +202,16 @@ horizon = sb.slider("Combien d'années comptez-vous rester ?", 1, 40, 30)
 sb.divider()
 sb.caption("Hypothèses (préremplies, modifiables)")
 # Valeurs par défaut tirées de données publiques (voir README) :
-# - hausse des prix : OFS, indice IMPI, T4 2019 = 100 -> T3 2026 = 129,8, soit +3,9 % par an
+# - hausse des prix : OCSTAT, appartements PPE non neufs, prix médian au m2 : 8 535 CHF (2016) -> 10 853 CHF (2024), soit +3,0 % par an
 # - hausse des loyers : OCSTAT, loyers libres non neufs, +1,8 % (2024-25) et +1,3 % (2025-26) -> 1,5 % par an
 # - rendement : BNS, obligations de la Confédération à 10 ans (dernière valeur, lue en direct ; 0,575 % au 26.11.2026)
 # - frais d'achat : droits d'enregistrement 3 % (LDE, Genève) + registre foncier et notaire ~1 % -> 4 %
 oblig = serie_bns("rendoblid", (("D0", "10J0"),), (date.today() - timedelta(days=60)).isoformat())
-REND_DEFAUT = round(oblig["valeur"], 2) if oblig else 0.58
+REND_DEFAUT = round(float(oblig["valeur"]), 2) if oblig else 0.58
 
 with sb.expander("Marché", expanded=False):
-    hausse_prix = st.number_input("Hausse annuelle des prix de l'immobilier (%)", -10.0, 10.0, 3.9, 0.1,
-                                  help="OFS, indice des prix de l'immobilier résidentiel (IMPI) : +29,8 % entre fin 2019 et le 3e trimestre 2026.")
+    hausse_prix = st.number_input("Hausse annuelle des prix de l'immobilier (%)", -10.0, 10.0, 3.0, 0.1,
+                                  help="OCSTAT, prix médian au m² des appartements non neufs à Genève : 8 535 CHF en 2016, 10 853 CHF en 2024.")
     hausse_loyers = st.number_input("Hausse annuelle des loyers (%)", -5.0, 10.0, 1.5, 0.1,
                                     help="OCSTAT, loyers libres à Genève : +1,8 % (2024-2025) et +1,3 % (2025-2026).")
     rendement = st.number_input("Rendement de l'épargne placée (%)", -5.0, 15.0, REND_DEFAUT, 0.05,
@@ -391,13 +426,5 @@ with onglet4:
     st.download_button("⬇️ Télécharger le tableau (CSV)", df.to_csv(index=False).encode("utf-8"),
                        "simulation_acheter_louer.csv", "text/csv")
 
-with st.expander("ℹ️ Comment l'outil calcule"):
-    st.markdown("""
-- **Même départ** : les deux ménages ont la même épargne. L'acheteur paie l'apport et les frais d'achat avec, et place le reste ; le locataire place tout.
-- **Même budget** : chaque année, celui dont le logement coûte le moins place la différence au rendement choisi.
-- **Acheteur** : paie les intérêts, le remboursement annuel et l'entretien. Son patrimoine = valeur du bien moins frais de vente, moins la dette, plus son épargne.
-- **Locataire** : paie le loyer, qui augmente chaque année. Son patrimoine = son épargne placée.
-- **Pas inclus** : impôts (valeur locative, déductions, impôt sur le gain immobilier, fortune), 2e pilier, renouvellement de l'hypothèque à un autre taux.
-""")
 
 pied_de_page()

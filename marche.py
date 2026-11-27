@@ -49,6 +49,21 @@ def serie_bns(cube, filtre, depuis=None):
         return None
 
 
+def taux_hypothecaires():
+    """Taux moyens BNS des hypothèques fixes 5 et 10 ans (dernier mois publié)."""
+    secours = {"Fixe 5 ans": 2.03, "Fixe 10 ans": 2.20}, "septembre 2026"
+    depuis = (date.today() - timedelta(days=240)).strftime("%Y-%m")
+    t5 = serie_bns("zikrepro", (("D0", "M"), ("D1", "50")), depuis)
+    t10 = serie_bns("zikrepro", (("D0", "M"), ("D1", "10")), depuis)
+    if not (t5 and t10):
+        return secours
+    mois = _date_fr(t10["date"])
+    mois = mois.replace("janv.", "janvier").replace("févr.", "février").replace("avr.", "avril") \
+               .replace("juil.", "juillet").replace("sept.", "septembre").replace("oct.", "octobre") \
+               .replace("nov.", "novembre").replace("déc.", "décembre")
+    return {"Fixe 5 ans": round(float(t5["valeur"]), 2), "Fixe 10 ans": round(float(t10["valeur"]), 2)}, mois
+
+
 def _date_fr(d: str) -> str:
     p = d.split("-")
     if len(p) == 2:
