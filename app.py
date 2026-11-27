@@ -161,6 +161,13 @@ def fenetre_verification(h):
     for txt, r in tests:
         st.markdown(f"{'✅' if r else '❌'} {txt}")
     st.caption(f"{sum(r for _, r in tests)} tests réussis sur {len(tests)}.")
+    st.markdown("**3. Comparaison avec un outil externe (calculateur location/achat d'UBS)**")
+    st.markdown("Avec l'exemple de la démo (prix 1'200'000, apport 240'000, taux 2,20 %), le calculateur d'UBS donne "
+                "un coût d'achat de **3'649 CHF par mois** (amortissement 889, intérêts 1'760, entretien 1'000), "
+                "exactement le coût mensuel de la 1re année calculé par notre outil. ✓")
+    st.caption("Vérifié le 27.11.2026 sur ubs.com. UBS conclut « la location est moins chère » parce qu'il compare seulement "
+               "les coûts mensuels ; notre outil compare le patrimoine (remboursement de la dette, hausse de la valeur, rendement "
+               "de l'épargne), d'où une conclusion différente sur plusieurs années.")
     if st.button("Fermer", type="primary", key="fermer_verif"):
         st.rerun()
 
@@ -169,20 +176,21 @@ OUTILS = [
     ("Notre outil", None),
     ("Moneyland<br><small>louer ou acheter</small>", "https://www.moneyland.ch/fr/louer-ou-acheter-calculateur"),
     ("UBS<br><small>calculateur hypothécaire</small>", "https://www.ubs.com/ch/fr/services/mortgages-and-financing/calculators/mortgage-calculator.html"),
+    ("UBS<br><small>calculateur location/achat</small>", "https://www.ubs.com/ch/fr/services/mortgages-and-financing/calculators/rent-or-buy-calculator.html"),
     ("BCGE<br><small>simulateur hypothécaire</small>", "https://bcge.ch/calculateur-hypothecaire"),
     ("MyFinanceTools<br><small>louer ou acheter</small>", "https://myfinancetools.io/fr/rent-vs-buy-calculator/"),
 ]
 # ✓ oui (vérifié) · ✗ non · ~ en partie · ? pas pu vérifier
 COMPARAISON = [
-    ("Vérifie si la banque vous prêterait l'argent", ["✓", "✗", "✓", "✓", "✗"]),
-    ("Compare l'achat avec la location",             ["✓", "✓", "✗", "✗", "✓"]),
-    ("Donne l'année à partir de laquelle acheter devient rentable", ["✓", "✗", "✗", "✗", "✓"]),
-    ("Tient compte du rendement de l'épargne (coût d'opportunité)", ["✓", "✓", "✗", "✗", "✓"]),
-    ("Tient compte des impôts",                      ["✗", "✓", "✗", "✗", "~"]),
-    ("Applique Casatax (aide genevoise)",            ["✓", "✗", "✗", "✗", "✗"]),
-    ("Hypothèses par défaut tirées de données publiques genevoises", ["✓", "✗", "✗", "✗", "✗"]),
-    ("Sources visibles et calcul vérifiable à la main", ["✓", "~", "✗", "✗", "~"]),
-    ("Neutre : ne vend pas d'hypothèque",            ["✓", "~", "✗", "✗", "✓"]),
+    ("Vérifie si la banque vous prêterait l'argent", ["✓", "✗", "✓", "✗", "✓", "✗"]),
+    ("Compare l'achat avec la location",             ["✓", "✓", "✗", "~", "✗", "✓"]),
+    ("Donne l'année à partir de laquelle acheter devient rentable", ["✓", "✗", "✗", "✗", "✗", "✓"]),
+    ("Tient compte du rendement de l'épargne (coût d'opportunité)", ["✓", "✓", "✗", "✗", "✗", "✓"]),
+    ("Tient compte des impôts",                      ["✗", "✓", "✗", "✗", "✗", "~"]),
+    ("Applique Casatax (aide genevoise)",            ["✓", "✗", "✗", "✗", "✗", "✗"]),
+    ("Hypothèses par défaut tirées de données publiques genevoises", ["✓", "✗", "✗", "✗", "✗", "✗"]),
+    ("Sources visibles et calcul vérifiable à la main", ["✓", "~", "✗", "~", "✗", "~"]),
+    ("Neutre : ne vend pas d'hypothèque",            ["✓", "~", "✗", "✗", "✗", "✓"]),
 ]
 COUL_SYMB = {"✓": "#8be0a9", "✗": "#f5a3a3", "~": "#f2c879", "?": "#9c9c9c"}
 
@@ -212,7 +220,7 @@ def fenetre_comparaison():
     st.caption("✓ oui · ✗ non · ~ en partie. "
                "Établi le 27.11.2026 à partir de la description publique de chaque outil ; nous ne les avons pas tous testés en détail. "
                "Moneyland ne vérifie pas la capacité financière et donne un résultat pour une durée choisie ; MyFinanceTools ne compte que l'impôt foncier (pas l'impôt sur le revenu) et contient des liens d'affiliation ; le simulateur BCGE (vérifié par notre groupe) demande le revenu pour juger la capacité financière, mais ne compte pas les impôts. "
-               "UBS propose aussi un calculateur location/achat séparé, non comparé ici.")
+               "Le calculateur location/achat d'UBS compare seulement les coûts du premier mois (amortissement, intérêts, entretien) au loyer, sans hausse des prix, sans rendement de l'épargne et, selon UBS, sans tenir compte des implications fiscales.")
     st.markdown("**En résumé** : Moneyland reste plus complet sur la fiscalité. Notre outil se distingue par "
                 "Casatax, des hypothèses genevoises issues de données publiques "
                 "et un calcul entièrement transparent et vérifiable.")
