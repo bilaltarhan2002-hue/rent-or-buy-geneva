@@ -10,3 +10,5 @@ entretien,1.0,%,valeur reprise telle quelle,Calculateur hypothecaire UBS https:/
 apport_minimum,20.0,%,valeur reprise telle quelle,Calculateur hypothecaire UBS ; directives de l'Association suisse des banquiers
 taux_theorique,5.0,%,valeur reprise telle quelle,Calculateur hypothecaire UBS ; directives de l'Association suisse des banquiers
 charges_max_revenu,33.33,%,valeur reprise telle quelle,Calculateur hypothecaire UBS ; directives de l'Association suisse des banquiers
+casatax_plafond,1394928.0,CHF,"montant indexé 2026, repris tel quel","Reglement d'application de l'article 8A LDE (rsGE D 3 30.03), art. 1 al. 6 let. a, adaptation 2026 https://silgeneve.ch/legis/data/rsg_D3_30p03.htm"
+casatax_reduction,20924.0,CHF,"montant indexé 2026, repris tel quel","Reglement d'application de l'article 8A LDE (rsGE D 3 30.03), art. 1 al. 6 let. b, reduction du droit de vente 2026 https://silgeneve.ch/legis/data/rsg_D3_30p03.htm"

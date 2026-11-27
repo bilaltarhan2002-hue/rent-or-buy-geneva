@@ -16,7 +16,10 @@ def chf(x):
 def calcul_main_annee1(h):
     """Refait l'année 1 avec les formules écrites une par une. Renvoie (lignes, résultat de l'outil)."""
     P, E, D0 = h.prix, h.epargne, h.emprunt
-    apport, frais = P - D0, h.frais_achat * P
+    apport = P - D0
+    reduc = min(h.casatax_reduction, h.droits_enregistrement * P) \
+        if (h.residence_principale and P <= h.casatax_plafond) else 0.0
+    frais = h.frais_achat * P - reduc
     A = min(h.amort_annuel, D0) if h.duree_amort >= 1 else 0.0
 
     V1 = P * (1 + h.hausse_prix)
@@ -32,6 +35,8 @@ def calcul_main_annee1(h):
     pct = lambda x: f"{100 * x:.2f} %"
     outil = simuler(replace(h, horizon=1))[0]
     lignes = [
+        ("Frais d'achat", f"{pct(h.frais_achat)} × {chf(P)}" + (f" − Casatax {chf(reduc)}" if reduc else ""),
+         frais, h.frais),
         ("Valeur du bien en fin d'année", f"{chf(P)} × (1 + {pct(h.hausse_prix)})", V1, outil["valeur_bien"]),
         ("Intérêts", f"{pct(h.taux_hypo)} × {chf(D0)}", interets, outil["interets"]),
         ("Remboursement", "montant annuel choisi", A, outil["amortissement"]),

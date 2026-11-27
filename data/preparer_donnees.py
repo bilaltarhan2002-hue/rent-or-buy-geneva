@@ -99,6 +99,10 @@ def preparer():
     for k in ("frais_vente", "entretien", "apport_minimum", "taux_theorique", "charges_max_revenu"):
         ajouter(k, float(fr[k]["valeur_pct"]), "%", "valeur reprise telle quelle", fr[k]["source"])
 
+    # 6. Casatax (aide genevoise à l'achat de sa résidence principale)
+    for r in lire("casatax.csv"):
+        ajouter(r["parametre"], float(r["valeur_chf"]), "CHF", "montant indexé 2026, repris tel quel", r["source"])
+
     with open(SORTIE, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(params[0]))
         w.writeheader()

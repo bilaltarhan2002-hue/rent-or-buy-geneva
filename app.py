@@ -108,6 +108,7 @@ FICHIERS_BRUTS = [
     ("Prix des appartements (OCSTAT)", "ocstat_prix_ppe.csv"),
     ("Loyers (OCSTAT)", "ocstat_loyers.csv"),
     ("Frais et règles bancaires", "frais_et_regles.csv"),
+    ("Casatax (Genève)", "casatax.csv"),
 ]
 
 
@@ -181,6 +182,7 @@ def sources_et_methode():
 | Frais d'achat | {PARAMS["frais_achat"]:.1f} % du prix | Loi genevoise sur les droits d'enregistrement (rsGE D 3 30) | Droits d'enregistrement 3 % + registre foncier 0,3 % + notaire 0,6 % (milieu de la fourchette 0,5–0,7 %). |
 | Frais de vente | 3 % du prix | Pratique du marché | Commission de courtage usuelle (2 à 3 %). |
 | Entretien | 1 % de la valeur / an | Règles des banques suisses (p. ex. calculateur UBS) | Valeur utilisée par les banques pour les frais d'entretien. |
+| Casatax (résidence principale) | −{PARAMS["casatax_reduction"]:,.0f} CHF de droits d'enregistrement si prix ≤ {PARAMS["casatax_plafond"]:,.0f} CHF | Loi genevoise sur les droits d'enregistrement, art. 8A ; règlement rsGE D 3 30.03 (montants 2026) | Réduction = min(20 924 CHF ; 3 % du prix). La réduction de moitié des frais de cédule hypothécaire n'est pas comptée (calcul prudent). |
 | Règles de financement | 20 % d'apport, charges ≤ 1/3 du revenu au taux théorique de 5 %, dette ramenée à 2/3 du prix en 15 ans | Directives de l'Association suisse des banquiers ; calculateur UBS | Appliquées telles quelles dans « Votre financement est-il possible ? ». |
 | Bandeau défilant | SARON, obligations 10 ans, EUR/CHF, USD/CHF, GBP/CHF | BNS, séries *zimoma*, *rendoblid*, *devkum* | Dernières valeurs publiées, relues toutes les 3 heures. |
 
@@ -290,6 +292,10 @@ duree_amort = sb.slider("Pendant combien d'années remboursez-vous ?", 1, 40, 15
 
 sb.header("4. Votre projet")
 horizon = sb.slider("Combien d'années comptez-vous rester ?", 1, 40, 30)
+residence = sb.checkbox("Ce sera ma résidence principale (au moins 3 ans)", value=True, key="residence",
+                        help="À Genève, l'achat de sa résidence principale donne droit à Casatax : une réduction "
+                             f"des droits d'enregistrement de {PARAMS['casatax_reduction']:,.0f} CHF au maximum, si le prix "
+                             f"ne dépasse pas {PARAMS['casatax_plafond']:,.0f} CHF (montants 2026).".replace(",", "'"))
 
 sb.divider()
 sb.caption("Hypothèses (préremplies, modifiables)")
@@ -360,6 +366,8 @@ h = Hypotheses(
     frais_achat=frais_achat / 100, frais_vente=frais_vente / 100, entretien=entretien / 100,
     hausse_prix=hausse_prix / 100, hausse_loyers=hausse_loyers / 100, rendement=rendement / 100,
     horizon=horizon,
+    residence_principale=residence,
+    casatax_plafond=PARAMS["casatax_plafond"], casatax_reduction=PARAMS["casatax_reduction"],
 )
 
 # ---------------------------------------------------------------- Financement
@@ -377,11 +385,18 @@ st.markdown('<div class="checks">' + "".join(
 
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Votre apport", chf(fin["apport"]))
-c2.metric("Frais d'achat", chf(fin["frais"]))
+c2.metric("Frais d'achat", chf(fin["frais"]),
+          f"−{chf(fin['casatax'])} grâce à Casatax" if fin["casatax"] else None, delta_color="inverse")
 c3.metric("Hypothèque", chf(h.emprunt))
 c4.metric("Remboursement / an", chf(h.amort_annuel),
           help="Vide dans la barre de gauche = minimum des banques (dette ramenée à 2/3 du prix en 15 ans).")
 
+if fin["casatax"]:
+    st.markdown(f'<div class="check ok" style="margin:8px 0">✓ <b>Casatax</b> : comme résidence principale à moins de '
+                f'{chf(h.casatax_plafond)}, vous économisez <b>{chf(fin["casatax"])}</b> de droits d\'enregistrement '
+                f'(aide genevoise, à condition d\'y habiter au moins 3 ans).</div>', unsafe_allow_html=True)
+elif residence and h.prix > h.casatax_plafond:
+    st.caption(f"Pas de Casatax : le prix dépasse le plafond de {chf(h.casatax_plafond)}.")
 for a in fin["avertissements"]:
     st.warning(a)
 if not fin["ok"]:

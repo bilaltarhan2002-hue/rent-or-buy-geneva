@@ -40,13 +40,26 @@ class Hypotheses:
 
     horizon: int = 30                # nombre d'années simulées
 
+    # Casatax (Genève) : réduction des droits d'enregistrement pour une résidence principale
+    residence_principale: bool = False
+    casatax_plafond: float = 1_394_928     # prix maximum (2026)
+    casatax_reduction: float = 20_924      # réduction maximale du droit de vente (2026)
+    droits_enregistrement: float = 0.03    # taux genevois du droit de vente
+
     @property
     def apport(self) -> float:
         return self.prix - self.emprunt
 
     @property
+    def casatax(self) -> float:
+        """Montant de la réduction Casatax (0 si non applicable)."""
+        if self.residence_principale and self.prix <= self.casatax_plafond:
+            return min(self.casatax_reduction, self.droits_enregistrement * self.prix)
+        return 0.0
+
+    @property
     def frais(self) -> float:
-        return self.frais_achat * self.prix
+        return self.frais_achat * self.prix - self.casatax
 
 
 def amortissement_minimum(prix: float, emprunt: float) -> float:
@@ -87,6 +100,7 @@ def controle_financement(h: Hypotheses) -> dict:
         "apport": h.apport,
         "part_apport": part_apport,
         "frais": h.frais,
+        "casatax": h.casatax,
         "reste_epargne": h.epargne - h.apport - h.frais,
         "charges_theoriques": charges,
         "ratio": ratio,
