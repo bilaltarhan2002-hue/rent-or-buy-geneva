@@ -550,7 +550,8 @@ onglet1, onglet2, onglet3, onglet4 = st.tabs(["📈 Patrimoine", "📊 Écart pa
 with onglet1:
     components.html(graphique_anime(df["annee"], df["patrimoine_acheteur"], df["patrimoine_locataire"], eq),
                     height=410)
-    st.caption("Patrimoine net si vous vendez (ou arrêtez de louer) à la fin de chaque année. "
+    st.caption("Ce graphique montre ce que vous possédez (votre patrimoine), pas ce que vous payez : "
+               "le loyer et les mensualités sont dans l'onglet « Tableau ». Patrimoine net si vous vendez (ou arrêtez de louer) à la fin de chaque année. "
                "Les courbes se redessinent à chaque simulation ; passez la souris pour voir les montants.")
 
 with onglet2:

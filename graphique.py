@@ -20,7 +20,7 @@ GABARIT = r"""
             border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: 5px 12px; font: 500 12px Inter, sans-serif;
             cursor: pointer;}
   #rejouer:hover {background: rgba(255,255,255,.16);}
-  #legende {position: absolute; left: 50%; transform: translateX(-50%); top: 2px; display: flex; gap: 18px; font-size: 13px;}
+  #legende {position: absolute; left: 50%; transform: translateX(-50%); top: 2px; white-space: nowrap; display: flex; gap: 18px; font-size: 13px;}
   #legende span {display: inline-flex; align-items: center; gap: 6px;}
   #legende i {display: inline-block; width: 14px; height: 3px; border-radius: 2px;}
   #bulle {position: absolute; pointer-events: none; background: #1b1e23; border: 1px solid #474c55; border-radius: 10px;
@@ -32,7 +32,7 @@ GABARIT = r"""
 </style></head><body>
 <div id="wrap">
   <div id="compteur"></div>
-  <div id="legende"><span><i style="background:#338ced"></i>Acheter</span><span><i style="background:#e76624"></i>Louer</span></div>
+  <div id="legende"><span><i style="background:#338ced"></i>Patrimoine si vous achetez</span><span><i style="background:#e76624"></i>Patrimoine si vous louez</span></div>
   <button id="rejouer">▶ Rejouer</button>
   <svg id="g"></svg>
   <div id="bulle"></div>
@@ -86,6 +86,7 @@ function construire() {
   D.annees.forEach(a => { if (a % pasX === 0 || a === x1) {
     const tx = el("text", {x: sx(a), y: H - M.b + 20, "text-anchor": "middle"}, axe); tx.textContent = a; } });
   const ta = el("text", {x: (M.l + W - M.r) / 2, y: H - 4, "text-anchor": "middle", class: "titre-axe"}); ta.textContent = "Années";
+  const ty = el("text", {x: 14, y: (M.t + H - M.b) / 2, "text-anchor": "middle", class: "titre-axe", transform: `rotate(-90 14 ${(M.t + H - M.b) / 2})`}); ty.textContent = "Patrimoine net (CHF)";
 
   // ligne d'équilibre (apparaît à la fin)
   const eqG = el("g", {opacity: 0, style: "transition: opacity .6s"});
@@ -147,8 +148,9 @@ function construire() {
     ["acheter", "louer"].forEach(c => { pts[c].setAttribute("cx", x); pts[c].setAttribute("cy", sy(D[c][k])); pts[c].setAttribute("opacity", 1); });
     const ec = D.acheter[k] - D.louer[k];
     bulle.innerHTML = `<div class="an">Année ${D.annees[k]}</div>
-      <div><span style="color:${COUL.acheter}">●</span> Acheter <span class="v">${chf(D.acheter[k])}</span></div>
-      <div><span style="color:${COUL.louer}">●</span> Louer <span class="v">${chf(D.louer[k])}</span></div>
+      <div style="color:#b0b0b0;font-size:11.5px">Ce que vous possédez (pas ce que vous payez)</div>
+      <div><span style="color:${COUL.acheter}">●</span> Si vous achetez <span class="v">${chf(D.acheter[k])}</span></div>
+      <div><span style="color:${COUL.louer}">●</span> Si vous louez <span class="v">${chf(D.louer[k])}</span></div>
       <div style="color:#b0b0b0">Écart <span class="v" style="color:#efefef">${ec >= 0 ? "+" : ""}${chf(ec)}</span></div>`;
     const px = x * (r.width / W);
     bulle.style.left = (px > r.width - 200 ? px - bulle.offsetWidth - 14 : px + 14) + "px";
