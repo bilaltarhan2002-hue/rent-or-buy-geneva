@@ -500,11 +500,20 @@ else:
 </div>""", unsafe_allow_html=True)
 
 c1, c2, c3 = st.columns(3)
-c1.metric("Coût mensuel si vous achetez", chf(lignes[0]["cout_acheteur"] / 12),
-          help="1re année : intérêts + remboursement + entretien, divisés par 12.")
-c2.metric("Loyer mensuel", chf(loyer))
+c1.metric("Coût mensuel si vous achetez (1re année)", chf(lignes[0]["cout_acheteur"] / 12),
+          help="1re année : intérêts + remboursement + entretien, divisés par 12. "
+               "Ce coût change ensuite : voir la colonne « Coût acheteur » de l'onglet Tableau.")
+c2.metric("Loyer mensuel (1re année)", chf(loyer))
 c3.metric(f"Patrimoine après {horizon} ans", f"{chf(fin_h['patrimoine_acheteur'])}",
           f"{chf(fin_h['ecart'])} vs location", delta_color="normal")
+
+apres = next((l for l in lignes if l["amortissement"] == 0 and l["annee"] > 1), None)
+if apres:
+    st.caption(f"À partir de l'année {apres['annee']}, les remboursements sont terminés : le coût de l'acheteur "
+               f"descend à environ {chf(apres['cout_acheteur'] / 12)} par mois (intérêts + entretien), "
+               f"contre un loyer d'environ {chf(apres['loyer'] / 12)} cette année-là. La dette restante "
+               f"({chf(apres['dette'])}) n'a pas besoin d'être remboursée : en Suisse, on la garde en général, "
+               "et on la rembourse avec le prix de vente si on vend.")
 
 # ---------------------------------------------------------------- Graphiques
 section(3, "L'évolution année par année")
