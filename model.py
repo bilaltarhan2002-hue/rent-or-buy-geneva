@@ -90,7 +90,7 @@ def controle_financement(h: Hypotheses) -> dict:
         )
     if ratio > 1 / 3:
         erreurs.append(f"Charges théoriques trop élevées : {ratio:.1%} du revenu (max. 33,3 %).")
-    if h.amort_annuel * h.duree_amort > h.emprunt:
+    if h.amort_annuel * h.duree_amort > h.emprunt + 1:
         erreurs.append("Vous remboursez plus que le montant emprunté.")
     if h.amort_annuel < amort_min - 0.5:
         avertissements.append(

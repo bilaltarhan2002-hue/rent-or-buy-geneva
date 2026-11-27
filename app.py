@@ -353,11 +353,24 @@ taux = sb.number_input("Taux hypothécaire (%)", min_value=0.0, max_value=15.0,
                        help=f"Taux moyen des nouvelles hypothèques publié par la BNS ({MOIS_TAUX}). "
                             "Modifiez-le si votre banque vous propose un autre taux.")
 amort_min = amortissement_minimum(prix, emprunt) if prix and emprunt is not None else None
-amort = sb.number_input("Combien remboursez-vous par an ? (CHF)", min_value=0, value=None, key="amort", step=1_000,
-                        placeholder=f"minimum {amort_min:,.0f}".replace(",", "'") if amort_min is not None else "ex. 10667",
-                        help="Laissez vide pour appliquer le minimum des banques : "
-                             "la dette redescend à 2/3 du prix en 15 ans.")
-duree_amort = sb.slider("Pendant combien d'années remboursez-vous ?", 1, 40, 15)
+mode_remb = sb.radio("Comment remboursez-vous le prêt ?",
+                     ["Le minimum demandé par la banque", "Tout le prêt", "Un montant que je choisis"],
+                     key="mode_remb",
+                     help="Minimum : la dette redescend à 2/3 du prix en 15 ans, on garde le reste "
+                          "(c'est le cas le plus fréquent en Suisse). Tout le prêt : la dette tombe à 0.")
+if mode_remb == "Tout le prêt":
+    duree_amort = sb.slider("En combien d'années ?", 5, 40, 25, key="duree_tout")
+    amort = emprunt / duree_amort if emprunt else None
+    if amort is not None:
+        sb.caption(f"➡️ Vous remboursez **{chf(amort)} par an**, puis vous n'avez plus de dette.")
+elif mode_remb == "Un montant que je choisis":
+    amort = sb.number_input("Combien remboursez-vous par an ? (CHF)", min_value=0, value=None, key="amort", step=1_000,
+                            placeholder=f"minimum {amort_min:,.0f}".replace(",", "'") if amort_min is not None else "ex. 10667")
+    duree_amort = sb.slider("Pendant combien d'années ?", 1, 40, 15, key="duree_libre")
+else:
+    amort, duree_amort = None, 15
+    if amort_min is not None:
+        sb.caption(f"➡️ {chf(amort_min)} par an pendant 15 ans, puis on garde le reste de la dette.")
 
 sb.header("4. Votre projet")
 horizon = sb.slider("Combien d'années comptez-vous rester ?", 1, 40, 30)
@@ -509,11 +522,17 @@ c3.metric(f"Patrimoine après {horizon} ans", f"{chf(fin_h['patrimoine_acheteur'
 
 apres = next((l for l in lignes if l["amortissement"] == 0 and l["annee"] > 1), None)
 if apres:
-    st.caption(f"À partir de l'année {apres['annee']}, les remboursements sont terminés : le coût de l'acheteur "
-               f"descend à environ {chf(apres['cout_acheteur'] / 12)} par mois (intérêts + entretien), "
-               f"contre un loyer d'environ {chf(apres['loyer'] / 12)} cette année-là. La dette restante "
-               f"({chf(apres['dette'])}) n'a pas besoin d'être remboursée : en Suisse, on la garde en général, "
-               "et on la rembourse avec le prix de vente si on vend.")
+    debut = (f"À partir de l'année {apres['annee']}, les remboursements sont terminés : le coût de l'acheteur "
+             f"descend à environ {chf(apres['cout_acheteur'] / 12)} par mois "
+             f"({'intérêts + entretien' if apres['dette'] > 1 else 'entretien seulement'}), "
+             f"contre un loyer d'environ {chf(apres['loyer'] / 12)} cette année-là. ")
+    if apres["dette"] > 1:
+        fin = (f"La dette restante ({chf(apres['dette'])}) n'a pas besoin d'être remboursée : en Suisse, "
+               "on la garde en général, et on la rembourse avec le prix de vente si on vend. "
+               "Pour tout rembourser, choisissez « Tout le prêt » dans « 3. Votre hypothèque ».")
+    else:
+        fin = "Le prêt est entièrement remboursé : il n'y a plus d'intérêts à payer."
+    st.caption(debut + fin)
 
 # ---------------------------------------------------------------- Graphiques
 section(3, "L'évolution année par année")
