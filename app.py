@@ -236,7 +236,7 @@ h = Hypotheses(
 
 # ---------------------------------------------------------------- Financement
 fin = controle_financement(h)
-section(1, "La banque vous suivrait-elle ?")
+section(1, "Votre financement est-il possible ?")
 
 regles = [
     (fin["part_apport"] >= 0.20, f"Apport de {fin['part_apport']:.0%} du prix (min. 20 %)"),
