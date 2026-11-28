@@ -24,7 +24,7 @@ for _mod in (_model, _marche, _graphique, _validation):   # évite qu'une ancien
     importlib.reload(_mod)
 
 from graphique import graphique_anime
-from marche import CSS as CSS_MARCHE, bandeau, serie_bns, taux_hypothecaires
+from marche import CSS as CSS_MARCHE, bandeau, serie_bns, taux_hypothecaires, taux_rss
 from validation import calcul_main_annee1, tests_coherence
 from model import Hypotheses, amortissement_minimum, annee_equilibre, controle_financement, simuler
 
@@ -241,13 +241,13 @@ def sources_et_methode():
 | Taux hypothécaire fixe 10 ans | {t10:.2f} % | BNS, série *zikrepro* | Idem. |
 | Hausse des prix de l'immobilier | {PARAMS["hausse_prix"]:.2f} % / an | Office cantonal de la statistique (OCSTAT), statistique des transactions immobilières | Prix médian au m² des appartements non neufs à Genève : 8 535 CHF (2016) → 10 853 CHF (2024), soit (10 853 / 8 535)^(1/8) − 1. |
 | Hausse des loyers | {PARAMS["hausse_loyers"]:.2f} % / an | OCSTAT, statistique cantonale des loyers | Loyers libres non neufs à Genève : +1,8 % (mai 2024 → mai 2025) et +1,3 % (mai 2025 → mai 2026). Moyenne géométrique des deux. |
-| Rendement de l'épargne | {REND_DEFAUT:.2f} % | BNS, série *rendoblid* | Rendement des obligations de la Confédération à 10 ans (placement sans risque), {d_obl}. Lu automatiquement. |
+| Rendement de l'épargne | {REND_DEFAUT:.2f} % | BNS, flux « taux actuels » (R10, taux au comptant 10 ans) | Rendement des obligations de la Confédération à 10 ans (placement sans risque), {d_obl}. Lu automatiquement. |
 | Frais d'achat | {PARAMS["frais_achat"]:.1f} % du prix | Loi genevoise sur les droits d'enregistrement (rsGE D 3 30) | Droits d'enregistrement 3 % + registre foncier 0,3 % + notaire 0,6 % (milieu de la fourchette 0,5–0,7 %). |
 | Frais de vente | 3 % du prix | Pratique du marché | Commission de courtage usuelle (2 à 3 %). |
 | Entretien | 1 % de la valeur / an | Règles des banques suisses (p. ex. calculateur UBS) | Valeur utilisée par les banques pour les frais d'entretien. |
 | Casatax (résidence principale) | −{PARAMS["casatax_reduction"]:,.0f} CHF de droits d'enregistrement si prix ≤ {PARAMS["casatax_plafond"]:,.0f} CHF | Loi genevoise sur les droits d'enregistrement, art. 8A ; règlement rsGE D 3 30.03 (montants 2026) | Réduction = min(20 924 CHF ; 3 % du prix). La réduction de moitié des frais de cédule hypothécaire n'est pas comptée (calcul prudent). |
 | Règles de financement | 20 % d'apport, charges ≤ 1/3 du revenu au taux théorique de 5 %, dette ramenée à 2/3 du prix en 15 ans | Directives de l'Association suisse des banquiers ; calculateur UBS | Appliquées telles quelles dans « Votre financement est-il possible ? ». |
-| Bandeau défilant | SARON, obligations 10 ans, EUR/CHF, USD/CHF, GBP/CHF | BNS, séries *zimoma*, *rendoblid*, *devkum* | Dernières valeurs publiées, relues toutes les 3 heures. |
+| Bandeau défilant | SARON, obligations 10 ans, EUR/CHF, USD/CHF, GBP/CHF | BNS, flux « taux actuels » (SARON, R10) et série *devkum* | Dernières valeurs publiées, relues toutes les 3 heures. |
 
 **Préparation des données** : chaque paramètre est calculé à partir des chiffres bruts publiés par les sources (formules ci-dessus). Cliquez sur **« Voir les données »** pour afficher les données brutes, les calculs et les liens vers les sources.
 
@@ -388,7 +388,7 @@ sb.caption("Hypothèses (préremplies, modifiables)")
 # - hausse des loyers : OCSTAT, loyers libres non neufs, +1,8 % (2024-25) et +1,3 % (2025-26) -> 1,5 % par an
 # - rendement : BNS, obligations de la Confédération à 10 ans (dernière valeur, lue en direct ; 0,575 % au 26.11.2026)
 # - frais d'achat : droits d'enregistrement 3 % (LDE, Genève) + registre foncier 0,3 % + notaire 0,6 %
-oblig = serie_bns("rendoblid", (("D0", "10J0"),), (date.today() - timedelta(days=60)).isoformat())
+oblig = taux_rss("R10")
 REND_DEFAUT = round(float(oblig["valeur"]), 2) if oblig else round(PARAMS["rendement_epargne"], 2)
 
 with sb.expander("Marché", expanded=False):

@@ -4,6 +4,7 @@ Les données sont relues au plus toutes les 3 heures. Si la BNS ne répond pas, 
 """
 
 import io
+import re
 import urllib.request
 from datetime import date, timedelta
 
@@ -49,6 +50,28 @@ def serie_bns(cube, filtre, depuis=None):
         return None
 
 
+RSS = "https://www.snb.ch/public/rss/en/interestRates"
+
+
+@st.cache_data(ttl=3 * 3600, show_spinner=False)
+def taux_rss(code):
+    """Deux dernières valeurs d'un taux du flux RSS « taux actuels » de la BNS
+    (R10 = obligations de la Confédération 10 ans, SARH = SARON), ou None.
+    La série rendoblid de data.snb.ch n'est plus mise à jour depuis juillet 2025."""
+    try:
+        req = urllib.request.Request(RSS, headers={"User-Agent": "rent-or-buy-geneva (projet etudiant)"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            texte = r.read().decode("utf-8")
+        obs = re.findall(r"CH:\s*(-?[\d.]+)\s+" + code + r"\s+(\d{4}-\d{2}-\d{2})", texte)
+        obs = sorted({d: float(v) for v, d in obs}.items())
+        if not obs:
+            return None
+        return {"date": obs[-1][0], "valeur": obs[-1][1],
+                "precedent": obs[-2][1] if len(obs) > 1 else None}
+    except Exception:
+        return None
+
+
 def taux_hypothecaires(secours_taux):
     """Taux moyens BNS des hypothèques fixes 5 et 10 ans (dernier mois publié)."""
     secours = secours_taux, "septembre 2026"
@@ -78,8 +101,8 @@ def bandeau(taux_hypo: dict) -> str:
     il_y_a = (date.today() - timedelta(days=60)).isoformat()
     il_y_a_mois = (date.today() - timedelta(days=150)).strftime("%Y-%m")
     elements = [
-        ("SARON", serie_bns("zimoma", (("D0", "SARON"),), il_y_a_mois), "%", 2),
-        ("Oblig. Confédération 10 ans", serie_bns("rendoblid", (("D0", "10J0"),), il_y_a), "%", 2),
+        ("SARON", taux_rss("SARH") or serie_bns("zimoma", (("D0", "SARON"),), il_y_a_mois), "%", 2),
+        ("Oblig. Confédération 10 ans", taux_rss("R10"), "%", 2),
         ("EUR/CHF", serie_bns("devkum", (("D0", "M0"), ("D1", "EUR1")), il_y_a_mois), "", 4),
         ("USD/CHF", serie_bns("devkum", (("D0", "M0"), ("D1", "USD1")), il_y_a_mois), "", 4),
         ("GBP/CHF", serie_bns("devkum", (("D0", "M0"), ("D1", "GBP1")), il_y_a_mois), "", 4),
