@@ -10,17 +10,19 @@ GABARIT = r"""
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   html, body {margin: 0; background: transparent; font-family: 'Inter', -apple-system, sans-serif; color: #efefef;}
-  #wrap {position: relative;}
+  #wrap {position: relative; background: rgba(22,25,30,.82); border: 1px solid rgba(255,255,255,.10);
+         border-radius: 14px; padding: 12px 10px 4px;}
+  #entete {display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 6px;}
   svg {display: block; width: 100%; overflow: visible;}
   .axe text {fill: #b0b0b0; font-size: 12px;}
   .titre-axe {fill: #b0b0b0; font-size: 12px;}
-  #compteur {position: absolute; left: 78px; top: 4px; font-size: 13px; color: #b0b0b0;}
+  #compteur {font-size: 13px; color: #b0b0b0; min-height: 20px;}
   #compteur b {color: #efefef; font-size: 15px;}
-  #rejouer {position: absolute; right: 6px; top: 0; background: rgba(255,255,255,.08); color: #efefef;
+  #rejouer {flex: none; background: rgba(255,255,255,.08); color: #efefef;
             border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: 5px 12px; font: 500 12px Inter, sans-serif;
             cursor: pointer;}
   #rejouer:hover {background: rgba(255,255,255,.16);}
-  #legende {position: absolute; left: 50%; transform: translateX(-50%); top: 2px; white-space: nowrap; display: flex; gap: 18px; font-size: 13px;}
+  #legende {display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; padding: 8px 6px 0;}
   #legende span {display: inline-flex; align-items: center; gap: 6px;}
   #legende i {display: inline-block; width: 14px; height: 3px; border-radius: 2px;}
   #bulle {position: absolute; pointer-events: none; background: #1b1e23; border: 1px solid #474c55; border-radius: 10px;
@@ -31,16 +33,15 @@ GABARIT = r"""
   @media (prefers-reduced-motion: reduce) {#rejouer {display: none;}}
 </style></head><body>
 <div id="wrap">
-  <div id="compteur"></div>
+  <div id="entete"><div id="compteur"></div><button id="rejouer">▶ Rejouer</button></div>
   <div id="legende"><span><i style="background:#338ced"></i>Patrimoine si vous achetez</span><span><i style="background:#e76624"></i>Patrimoine si vous louez</span></div>
-  <button id="rejouer">▶ Rejouer</button>
   <svg id="g"></svg>
   <div id="bulle"></div>
 </div>
 <script>
 const D = __DATA__;
 const COUL = {acheter: "#338ced", louer: "#e76624"};
-const H = 400, M = {l: 64, r: 86, t: 36, b: 38};
+const H = 380, M = {l: 64, r: 86, t: 22, b: 38};
 const svg = document.getElementById("g"), bulle = document.getElementById("bulle"),
       compteur = document.getElementById("compteur"), wrap = document.getElementById("wrap");
 const NS = "http://www.w3.org/2000/svg";
@@ -67,7 +68,7 @@ function graduations(min, max, n) {
 }
 
 function construire() {
-  W = wrap.clientWidth || 700;
+  W = (wrap.clientWidth - 20) || 700;
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("height", H);
   while (svg.firstChild) svg.removeChild(svg.firstChild);
   const n = D.annees.length, x0 = n > 1 ? D.annees[0] : 0, x1 = D.annees[n - 1];
@@ -154,7 +155,7 @@ function construire() {
       <div style="color:#b0b0b0">Écart <span class="v" style="color:#efefef">${ec >= 0 ? "+" : ""}${chf(ec)}</span></div>`;
     const px = x * (r.width / W);
     bulle.style.left = (px > r.width - 200 ? px - bulle.offsetWidth - 14 : px + 14) + "px";
-    bulle.style.top = "40px"; bulle.style.opacity = 1;
+    bulle.style.top = "80px"; bulle.style.opacity = 1;
   });
   zone.addEventListener("mouseleave", () => {
     curseur.setAttribute("opacity", 0); pts.acheter.setAttribute("opacity", 0); pts.louer.setAttribute("opacity", 0); bulle.style.opacity = 0;
