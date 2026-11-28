@@ -488,8 +488,9 @@ if not fin["ok"]:
     for e in fin["erreurs"]:
         st.error(e)
     st.info(f"Revenu minimum pour ce logement : **{chf(fin['revenu_minimum'])}** par an.")
-    pied_de_page()
-    st.stop()
+    st.warning("**La banque refuserait ce financement.** Les résultats ci-dessous sont affichés "
+               "à titre de comparaison seulement : en pratique, cet achat ne serait pas possible "
+               "avec ces chiffres.")
 
 # ---------------------------------------------------------------- Simulation
 lignes = simuler(h)
@@ -497,7 +498,7 @@ df = pd.DataFrame(lignes)
 eq = annee_equilibre(lignes)
 fin_h = lignes[-1]
 
-section(2, "Le verdict")
+section(2, "Le verdict" if fin["ok"] else "Le verdict (si la banque acceptait)")
 if eq:
     st.markdown(f"""
 <div class="verdict achat">
